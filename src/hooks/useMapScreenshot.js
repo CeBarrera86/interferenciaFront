@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import html2canvas from 'html2canvas';
-import { hideElementsTemporarily, Maps_CONTROL_CLASSES } from '../mapUtils';
+import { hideElementsTemporarily, Maps_CONTROL_CLASSES } from '../utils/mapUtils';
 
 export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallback, disableCaptureButton) {
   const captureButtonRef = useRef(null);

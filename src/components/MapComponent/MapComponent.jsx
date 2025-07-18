@@ -1,11 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager } from '@react-google-maps/api';
-import { Maps_API_KEY, Maps_ID, containerStyle, defaultCenter, libraries } from './mapConstants';
-import { getMapOptions } from './MapOptions';
+import { Maps_API_KEY, Maps_ID, containerStyle, defaultCenter, libraries } from '../../config/mapConstants';
+import { getMapOptions } from '../../config/mapOptions';
 import MapButton from './MapButton';
-import { useMapMarker } from './hooks/useMapMarker';
-import { useMapDrawing } from './hooks/useMapDrawing';
-import { useMapScreenshot } from './hooks/useMapScreenshot';
+import { useMapMarker } from '../../hooks/useMapMarker';
+import { useMapDrawing } from '../../hooks/useMapDrawing';
+import { useMapScreenshot } from '../../hooks/useMapScreenshot';
 
 export default function MapComponent({ zoom, onMapClick, markerPosition, onMapScreenshot, disableCaptureButton }) {
   const { isLoaded, loadError } = useJsApiLoader({

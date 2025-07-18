@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
-import { getDrawingManagerOptions as getBaseDrawingManagerOptions } from '../MapOptions';
+import { getDrawingManagerOptions as getBaseDrawingManagerOptions } from '../config/mapOptions';
 
 export function useMapDrawing(isLoaded) {
   const drawingManagerRef = useRef(null);
