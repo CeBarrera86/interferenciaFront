@@ -1,32 +1,41 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager } from '@react-google-maps/api';
-import { Maps_API_KEY, Maps_ID, containerStyle, defaultCenter, libraries } from '../../config/mapConstants';
+import { Maps_API_KEY, containerStyle, defaultCenter, libraries } from '../../config/mapConstants';
 import { getMapOptions } from '../../config/mapOptions';
 import MapButton from './MapButton';
 import { useMapMarker } from '../../hooks/useMapMarker';
 import { useMapDrawing } from '../../hooks/useMapDrawing';
-import { useMapScreenshot } from '../../hooks/useMapScreenshot';
+import html2canvas from 'html2canvas';
 
-export default function MapComponent({ zoom, onMapClick, markerPosition, onMapScreenshot, disableCaptureButton }) {
+const allLibraries = [...libraries, 'geometry'];
+
+export default function MapComponent({ zoom, onMapClick, markerPosition, onMapScreenshot, disableCaptureButton, onDrawnShapesChange }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: Maps_API_KEY,
-    libraries,
+    libraries: allLibraries,
   });
-
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const captureButtonRef = useRef(null);
   const clearButtonRef = useRef(null);
   const { currentMarker, handleMapClick, createOrUpdateMarker } = useMapMarker(mapRef, markerPosition || defaultCenter, isLoaded, onMapClick);
-  const { drawingManagerRef, onDrawingManagerLoad, onOverlayComplete, drawingManagerOptions, clearAllOverlays } = useMapDrawing(isLoaded);
-  const { handleCaptureMap } = useMapScreenshot(
-    mapContainerRef,
-    mapRef,
-    onMapScreenshot,
-    disableCaptureButton,
-    [captureButtonRef, clearButtonRef]
-  );
+  const { drawingManagerRef, onDrawingManagerLoad, onOverlayComplete, drawnShapes, drawingManagerOptions, clearAllOverlays } = useMapDrawing(isLoaded, onDrawnShapesChange);
+  // Lógica de captura de mapa con html2canvas
+  const handleCaptureMap = useCallback(() => {
+    if (mapContainerRef.current && onMapScreenshot) {
+      html2canvas(mapContainerRef.current, {
+        useCORS: true,
+        allowTaint: true,
+      }).then(canvas => {
+        onMapScreenshot(canvas.toDataURL('image/png'));
+      }).catch(err => {
+        console.error("Error al capturar el mapa:", err);
+      });
+    } else {
+      console.warn("No se pudo capturar el mapa: mapContainerRef no disponible o onMapScreenshot no definido.");
+    }
+  }, [onMapScreenshot]);
 
   const onLoad = useCallback(function callback(map) {
     mapRef.current = map;
@@ -38,7 +47,7 @@ export default function MapComponent({ zoom, onMapClick, markerPosition, onMapSc
     map.setZoom(zoom || 13);
 
     if (isLoaded) {
-        createOrUpdateMarker();
+      createOrUpdateMarker();
     }
   }, [markerPosition, zoom, isLoaded, createOrUpdateMarker]);
 

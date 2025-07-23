@@ -5,7 +5,7 @@ import { CssBaseline, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-import es from 'dayjs/locale/es';
+import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 dayjs.extend(localeData);
 import theme from './styles/theme';
@@ -15,11 +15,12 @@ import Footer from './components/Footer';
 
 function App() {
   dayjs.locale('es');
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={es}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
           <Router>
             <Header />
             <Box component="main" sx={{ flexGrow: 1, py: 3 }}>

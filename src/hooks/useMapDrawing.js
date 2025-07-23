@@ -1,57 +1,84 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { getDrawingManagerOptions as getBaseDrawingManagerOptions } from '../config/mapOptions';
 
-export function useMapDrawing(isLoaded) {
+export function useMapDrawing(isLoaded, onDrawnShapesChange) {
   const drawingManagerRef = useRef(null);
   const [drawnOverlays, setDrawnOverlays] = useState([]);
-  const [drawnShapes, setDrawnShapes] = useState([]);
+  const [drawnShapes, setDrawnShapesState] = useState([]);
+
+  // Actualiza el estado local y notifica al padre
+  const setDrawnShapes = useCallback((newShapes) => {
+    setDrawnShapesState(newShapes);
+    if (onDrawnShapesChange) {
+      onDrawnShapesChange(newShapes);
+    }
+  }, [onDrawnShapesChange]);
+
   const onDrawingManagerLoad = useCallback((drawingManager) => {
     drawingManagerRef.current = drawingManager;
   }, []);
+
   const onOverlayComplete = useCallback((overlayEvent) => {
-    setDrawnOverlays(prev => [...prev, overlayEvent.overlay]);
+    // Limpiar overlays anteriores si solo se permite uno
+    if (drawnOverlays.length > 0) {
+      drawnOverlays.forEach(overlay => overlay.setMap(null));
+      setDrawnOverlays([]);
+      setDrawnShapes([]); // También limpiar las formas lógicas
+    }
+
+    const newOverlay = overlayEvent.overlay;
+    setDrawnOverlays([newOverlay]); // Almacenar solo el nuevo overlay
 
     let newShape = null;
     if (overlayEvent.type === window.google.maps.drawing.OverlayType.POLYGON) {
-      const paths = overlayEvent.overlay.getPaths().getArray().map(path => path.getArray().map(latLng => ({
+      const paths = newOverlay.getPaths().getArray().map(path => path.getArray().map(latLng => ({
         lat: latLng.lat(),
         lng: latLng.lng(),
       })));
-      newShape = { type: 'polygon', paths };
-    } else if (overlayEvent.type === window.google.maps.drawing.OverlayType.CIRCLE) {
-      const center = overlayEvent.overlay.getCenter();
-      const radius = overlayEvent.overlay.getRadius();
-      newShape = {
-        type: 'circle',
-        center: { lat: center.lat(), lng: center.lng() },
-        radius,
-      };
-    } else if (overlayEvent.type === window.google.maps.drawing.OverlayType.POLYLINE) {
-        const path = overlayEvent.overlay.getPath().getArray().map(latLng => ({
-            lat: latLng.lat(),
-            lng: latLng.lng(),
-        }));
-        newShape = { type: 'polyline', path };
+      newShape = { type: 'polygon', paths, googleObject: newOverlay };
     } else if (overlayEvent.type === window.google.maps.drawing.OverlayType.RECTANGLE) {
-        const bounds = overlayEvent.overlay.getBounds();
-        const northEast = bounds.getNorthEast();
-        const southWest = bounds.getSouthWest();
-        newShape = {
-            type: 'rectangle',
-            bounds: {
-                north: northEast.lat(),
-                east: northEast.lng(),
-                south: southWest.lat(),
-                west: southWest.lng(),
-            },
-        };
+      const bounds = newOverlay.getBounds();
+      const northEast = bounds.getNorthEast();
+      const southWest = bounds.getSouthWest();
+      newShape = {
+        type: 'rectangle',
+        bounds: {
+          north: northEast.lat(),
+          east: northEast.lng(),
+          south: southWest.lat(),
+          west: southWest.lng(),
+        },
+        googleObject: newOverlay,
+      };
     }
 
     if (newShape) {
-      setDrawnShapes(prevShapes => [...prevShapes, newShape]);
+      setDrawnShapes([newShape]); // Almacenar solo la nueva forma
       drawingManagerRef.current?.setDrawingMode(null);
+
+      // Añadir listeners para cambios en la forma (edición)
+      if (newShape.type === 'polygon') {
+        newShape.googleObject.getPaths().forEach(path => {
+          window.google.maps.event.addListener(path, 'insert_at', () => setDrawnShapes([newShape]));
+          window.google.maps.event.addListener(path, 'set_at', () => setDrawnShapes([newShape]));
+          window.google.maps.event.addListener(path, 'remove_at', () => setDrawnShapes([newShape]));
+        });
+      } else if (newShape.type === 'rectangle') {
+        window.google.maps.event.addListener(newShape.googleObject, 'bounds_changed', () => {
+          const bounds = newShape.googleObject.getBounds();
+          const northEast = bounds.getNorthEast();
+          const southWest = bounds.getSouthWest();
+          newShape.bounds = {
+            north: northEast.lat(),
+            east: northEast.lng(),
+            south: southWest.lat(),
+            west: southWest.lng(),
+          };
+          setDrawnShapes([newShape]);
+        });
+      }
     }
-  }, []);
+  }, [drawnOverlays, setDrawnShapes]);
 
   const clearAllOverlays = useCallback(() => {
     drawnOverlays.forEach(overlay => {
@@ -59,7 +86,7 @@ export function useMapDrawing(isLoaded) {
     });
     setDrawnOverlays([]);
     setDrawnShapes([]);
-  }, [drawnOverlays]);
+  }, [drawnOverlays, setDrawnShapes]);
 
   const drawingManagerOptions = useMemo(() => {
     if (isLoaded && window.google?.maps?.drawing) {

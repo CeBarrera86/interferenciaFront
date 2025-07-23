@@ -48,10 +48,9 @@ export default function InterferenciasForm() {
     errorMessage,
     errorDetails,
     handleErrorDialogClose,
+    setDrawnShapes,
+    canCaptureMap,
   } = useInterferenciaForm();
-
-  if (loadingLocalidades) return <div>Cargando localidades...</div>;
-  if (errorLocalidades) return <div>Error al cargar localidades: {errorLocalidades.message}</div>;
 
   return (
     <Box sx={{ p: 2 }}>
@@ -77,7 +76,6 @@ export default function InterferenciasForm() {
             </form>
           </Paper>
         </Box>
-
         {/* Segundo Panel: Zona de Interferencia */}
         <Box sx={{ flex: '1 1 500px' }}>
           <Paper elevation={3} sx={{ p: 2 }}>
@@ -88,12 +86,12 @@ export default function InterferenciasForm() {
               onMapClick={handleMapClick}
               markerPosition={{ lat: currentLat, lng: currentLng }}
               onMapScreenshot={handleMapScreenshot}
-              disableCaptureButton={activeAttachmentType === 'file'}
+              disableCaptureButton={!canCaptureMap || activeAttachmentType === 'file'}
+              onDrawnShapesChange={setDrawnShapes}
             />
           </Paper>
         </Box>
       </Box>
-
       {/* Vista Previa del Mapa */}
       <Dialog open={openMapPreview} onClose={handleCloseMapPreview} maxWidth="md" fullWidth >
         <DialogTitle>
@@ -113,22 +111,25 @@ export default function InterferenciasForm() {
           )}
         </DialogContent>
       </Dialog>
-
       {/* Mensaje de Éxito */}
       <Dialog open={openSuccessDialog} onClose={resetFormAndMap} maxWidth="sm" fullWidth>
         <DialogTitle sx={{
-          backgroundColor: theme.palette.success.light, color: theme.palette.primary.contrastText, pb: 1, pt: 2,
+          backgroundColor: theme.palette.success.main,
+          color: theme.palette.success.contrastText,
+          pb: 1,
+          pt: 2,
           borderBottom: `1px solid ${theme.palette.success.dark}`,
         }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <CheckCircleOutlineIcon sx={{ color: theme.palette.success.contrastText, fontSize: '2rem' }} />
-              <Typography variant="h6" sx={{ color: theme.palette.success.contrastText }}>
+              <Typography variant="h6" sx={{ color: theme.palette.success.contrastText, fontWeight: 'bold' }}>
                 ¡Interferencia Generada!
               </Typography>
             </Box>
             <IconButton edge="end" color="inherit" onClick={resetFormAndMap} aria-label="close"
-              sx={{ color: theme.palette.success.contrastText }} >
+              sx={{ color: theme.palette.success.contrastText }}
+            >
               <CloseIcon />
             </IconButton>
           </Box>
@@ -144,9 +145,12 @@ export default function InterferenciasForm() {
           )}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
             <Button
-              variant="contained" onClick={resetFormAndMap} color="success"
+              variant="contained"
+              onClick={resetFormAndMap}
+              color="success"
               sx={{
-                minWidth: '120px', boxShadow: `0px 4px 8px ${theme.palette.success.light}`,
+                minWidth: '120px',
+                boxShadow: `0px 4px 8px ${theme.palette.success.light}`,
                 '&:hover': {
                   backgroundColor: theme.palette.success.dark,
                 },
@@ -156,7 +160,7 @@ export default function InterferenciasForm() {
           </Box>
         </DialogContent>
       </Dialog>
-
+      {/* Diálogo de Error */}
       <Dialog open={openErrorDialog} onClose={handleErrorDialogClose} maxWidth="sm" fullWidth>
         <DialogTitle sx={{
           backgroundColor: theme.palette.error.main, color: theme.palette.error.contrastText,

@@ -27,6 +27,7 @@ export function useInterferenciaForm() {
       SOI_HASTA: null,
     },
   });
+
   const currentLat = watch('SOI_LATITUD');
   const currentLng = watch('SOI_LONGITUD');
   const existingAdjunto = watch('SOI_ADJUNTO');
@@ -39,6 +40,8 @@ export function useInterferenciaForm() {
   const [openErrorDialog, setOpenErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [errorDetails, setErrorDetails] = useState('');
+  const [drawnShapes, setDrawnShapes] = useState([]);
+  const [canCaptureMap, setCanCaptureMap] = useState(false);
 
   useEffect(() => {
     if (existingAdjunto) {
@@ -53,20 +56,26 @@ export function useInterferenciaForm() {
   }, [existingAdjunto]);
 
   const handleMapScreenshot = useCallback((imageDataUrl) => {
+    console.log('Captura del mapa recibida en hook.');
     setMapScreenshotData(imageDataUrl);
 
-    const byteString = atob(imageDataUrl.split(',')[1]);
-    const mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([ab], { type: mimeString });
-    const file = new File([blob], 'map_screenshot.png', { type: mimeString });
+    if (imageDataUrl && typeof imageDataUrl === 'string') {
+      // Convertir data URL a File Blob
+      const byteString = atob(imageDataUrl.split(',')[1]);
+      const mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], 'map_screenshot.png', { type: mimeString });
 
-    setValue('SOI_ADJUNTO', file, { shouldDirty: true });
-    setOpenMapPreview(true);
+      setValue('SOI_ADJUNTO', file, { shouldDirty: true });
+      setOpenMapPreview(true);
+    } else {
+      console.warn("handleMapScreenshot llamado sin datos de imagen válidos.");
+    }
   }, [setValue]);
 
   const handleFormUbicacionFileChange = useCallback((file) => {
@@ -101,6 +110,8 @@ export function useInterferenciaForm() {
     setOpenErrorDialog(false);
     setErrorMessage('');
     setErrorDetails('');
+    setDrawnShapes([]);
+    setCanCaptureMap(false);
   }, [reset, setValue]);
 
   const handleErrorDialogClose = useCallback(() => {
@@ -109,7 +120,66 @@ export function useInterferenciaForm() {
     setErrorDetails('');
   }, []);
 
+  // Verifica si un punto está dentro de una forma
+  const isPointInShape = useCallback((point, shape) => {
+    if (!window.google || !window.google.maps || !window.google.maps.geometry) {
+      console.warn("Google Maps API (o la librería geometry) no está cargada para isPointInShape.");
+      return false;
+    }
+    const googlePoint = new window.google.maps.LatLng(point.lat, point.lng);
+
+    if (shape.type === 'polygon' && shape.googleObject) {
+      return window.google.maps.geometry.poly.containsLocation(googlePoint, shape.googleObject);
+    } else if (shape.type === 'rectangle' && shape.googleObject) {
+      return shape.googleObject.getBounds().contains(googlePoint);
+    } else if (shape.type === 'circle' && shape.googleObject) {
+      const center = shape.googleObject.getCenter();
+      const radius = shape.googleObject.getRadius();
+      const distance = window.google.maps.geometry.spherical.computeDistanceBetween(googlePoint, center);
+      return distance <= radius;
+    }
+    return false;
+  }, []);
+
+  // Determina si se puede capturar el mapa
+  useEffect(() => {
+    const defaultLat = -35.65867;
+    const defaultLng = -63.75715;
+    const markerIsSet = (currentLat !== defaultLat || currentLng !== defaultLng);
+    const hasDrawnShapes = drawnShapes.length > 0;
+    const markerPosition = { lat: currentLat, lng: currentLng };
+
+    let allowCapture = false;
+
+    if (markerIsSet && !hasDrawnShapes) {
+      // Condición 1: Solo se marcó con el pin rojo la ubicación
+      allowCapture = true;
+    } else if (markerIsSet && hasDrawnShapes) {
+      // Condición 2: El marcador rojo se encuentra dentro del área dibujada
+      const markerInAnyShape = drawnShapes.some(shape => isPointInShape(markerPosition, shape));
+      if (markerInAnyShape) {
+        allowCapture = true;
+      } else {
+        // Excluido: Hay dibujos pero el marcador no está dentro
+        allowCapture = false;
+      }
+    } else {
+      // Ni marcador ni dibujos, o solo dibujos sin marcador
+      allowCapture = false;
+    }
+
+    // Si ya existe un adjunto que no es una captura de mapa, la captura del mapa no debe estar permitida
+    if (existingAdjunto && !(existingAdjunto instanceof File && existingAdjunto.name && existingAdjunto.name.startsWith('map_screenshot'))) {
+      allowCapture = false;
+    }
+
+    setCanCaptureMap(allowCapture);
+  }, [currentLat, currentLng, drawnShapes, isPointInShape, existingAdjunto]);
+
+
   const onSubmit = useCallback(async (data) => {
+    console.log('Datos a enviar (desde hook):', data);
+
     const formData = new FormData();
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
@@ -132,12 +202,15 @@ export function useInterferenciaForm() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error al enviar el formulario (desde hook):', response.status, errorData);
+
         setErrorMessage(errorData.message || 'Error desconocido al procesar la solicitud.');
         setErrorDetails(errorData.error || (errorData.errors && errorData.errors.map(e => e.msg).join(', ')) || '');
         setOpenErrorDialog(true);
         return false;
       } else {
         const result = await response.json();
+        console.log('Formulario enviado con éxito (desde hook):', result);
+
         setSuccessMessage(result.message);
         setInterferenciaId(result.id);
         setOpenSuccessDialog(true);
@@ -176,5 +249,7 @@ export function useInterferenciaForm() {
     errorMessage,
     errorDetails,
     handleErrorDialogClose,
+    setDrawnShapes,
+    canCaptureMap,
   };
 }
