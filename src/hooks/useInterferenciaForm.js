@@ -27,14 +27,18 @@ export function useInterferenciaForm() {
       SOI_HASTA: null,
     },
   });
-
   const currentLat = watch('SOI_LATITUD');
   const currentLng = watch('SOI_LONGITUD');
   const existingAdjunto = watch('SOI_ADJUNTO');
-
   const [mapScreenshotData, setMapScreenshotData] = useState(null);
   const [openMapPreview, setOpenMapPreview] = useState(false);
   const [activeAttachmentType, setActiveAttachmentType] = useState(null);
+  const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [interferenciaId, setInterferenciaId] = useState(null);
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorDetails, setErrorDetails] = useState('');
 
   useEffect(() => {
     if (existingAdjunto) {
@@ -49,7 +53,6 @@ export function useInterferenciaForm() {
   }, [existingAdjunto]);
 
   const handleMapScreenshot = useCallback((imageDataUrl) => {
-    console.log('Captura del mapa recibida en hook.');
     setMapScreenshotData(imageDataUrl);
 
     const byteString = atob(imageDataUrl.split(',')[1]);
@@ -85,9 +88,28 @@ export function useInterferenciaForm() {
     setMapScreenshotData(null);
   }, [setValue]);
 
-  const onSubmit = useCallback(async (data) => {
-    console.log('Datos a enviar (desde hook):', data);
+  const resetFormAndMap = useCallback(() => {
+    reset();
+    setValue('SOI_LATITUD', -35.65867);
+    setValue('SOI_LONGITUD', -63.75715);
+    setValue('SOI_ADJUNTO', null);
+    setMapScreenshotData(null);
+    setActiveAttachmentType(null);
+    setOpenSuccessDialog(false);
+    setSuccessMessage('');
+    setInterferenciaId(null);
+    setOpenErrorDialog(false);
+    setErrorMessage('');
+    setErrorDetails('');
+  }, [reset, setValue]);
 
+  const handleErrorDialogClose = useCallback(() => {
+    setOpenErrorDialog(false);
+    setErrorMessage('');
+    setErrorDetails('');
+  }, []);
+
+  const onSubmit = useCallback(async (data) => {
     const formData = new FormData();
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
@@ -110,22 +132,25 @@ export function useInterferenciaForm() {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error al enviar el formulario (desde hook):', response.status, errorData);
-        alert(`Error al guardar: ${errorData.message || 'Error desconocido'}`);
-        return false; // Indicate failure
+        setErrorMessage(errorData.message || 'Error desconocido al procesar la solicitud.');
+        setErrorDetails(errorData.error || (errorData.errors && errorData.errors.map(e => e.msg).join(', ')) || '');
+        setOpenErrorDialog(true);
+        return false;
       } else {
         const result = await response.json();
-        alert('Formulario enviado con éxito!');
-        reset();
-        setActiveAttachmentType(null);
-        setMapScreenshotData(null);
+        setSuccessMessage(result.message);
+        setInterferenciaId(result.id);
+        setOpenSuccessDialog(true);
         return true;
       }
     } catch (error) {
       console.error('Error de red o en la petición (desde hook):', error);
-      alert('Error de conexión o en la petición. Intente nuevamente.');
+      setErrorMessage('Error de conexión. No se pudo llegar al servidor.');
+      setErrorDetails(error.message);
+      setOpenErrorDialog(true);
       return false;
     }
-  }, [reset, setValue]);
+  }, []);
 
   return {
     control,
@@ -141,7 +166,15 @@ export function useInterferenciaForm() {
     handleFormUbicacionFileChange,
     handleCloseMapPreview,
     handleMapClick,
-    clearAttachment,
+    cleanAttachment: clearAttachment,
     onSubmit,
+    openSuccessDialog,
+    successMessage,
+    interferenciaId,
+    resetFormAndMap,
+    openErrorDialog,
+    errorMessage,
+    errorDetails,
+    handleErrorDialogClose,
   };
 }

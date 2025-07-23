@@ -16,11 +16,18 @@ export default function MapComponent({ zoom, onMapClick, markerPosition, onMapSc
 
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
+  const captureButtonRef = useRef(null);
+  const clearButtonRef = useRef(null);
   const { currentMarker, handleMapClick, createOrUpdateMarker } = useMapMarker(mapRef, markerPosition || defaultCenter, isLoaded, onMapClick);
-  const { drawingManagerRef, onDrawingManagerLoad, onOverlayComplete, drawingManagerOptions } = useMapDrawing(isLoaded);
-  const { captureButtonRef, handleCaptureMap } = useMapScreenshot(mapContainerRef, mapRef, onMapScreenshot, disableCaptureButton);
+  const { drawingManagerRef, onDrawingManagerLoad, onOverlayComplete, drawingManagerOptions, clearAllOverlays } = useMapDrawing(isLoaded);
+  const { handleCaptureMap } = useMapScreenshot(
+    mapContainerRef,
+    mapRef,
+    onMapScreenshot,
+    disableCaptureButton,
+    [captureButtonRef, clearButtonRef]
+  );
 
-  // Se ejecuta al cargar el mapa
   const onLoad = useCallback(function callback(map) {
     mapRef.current = map;
     if (markerPosition && (markerPosition.lat !== defaultCenter.lat || markerPosition.lng !== defaultCenter.lng)) {
@@ -31,11 +38,10 @@ export default function MapComponent({ zoom, onMapClick, markerPosition, onMapSc
     map.setZoom(zoom || 13);
 
     if (isLoaded) {
-        createOrUpdateMarker(); // Dibuja inicialmente el mapa
+        createOrUpdateMarker();
     }
   }, [markerPosition, zoom, isLoaded, createOrUpdateMarker]);
 
-  // Se ejecuta cuando el componente del mapa se desmonta
   const onUnmount = useCallback(function callback() {
     mapRef.current = null;
     drawingManagerRef.current = null;
@@ -64,7 +70,21 @@ export default function MapComponent({ zoom, onMapClick, markerPosition, onMapSc
         )}
       </GoogleMap>
 
-      <MapButton ref={captureButtonRef} onClick={handleCaptureMap} disabled={disableCaptureButton} />
+      <div style={{
+        position: 'absolute',
+        bottom: 16,
+        left: 16,
+        zIndex: 1000,
+        display: 'flex',
+        gap: '10px'
+      }}>
+        <MapButton ref={captureButtonRef} onClick={handleCaptureMap} disabled={disableCaptureButton}>
+          Capturar Mapa
+        </MapButton>
+        <MapButton ref={clearButtonRef} onClick={clearAllOverlays} color="secondary">
+          Borrar Dibujo
+        </MapButton>
+      </div>
     </div>
   );
 }

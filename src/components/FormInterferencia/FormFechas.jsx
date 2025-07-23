@@ -17,6 +17,7 @@ export default function FormFechas({ control, errors }) {
               label="Desde"
               type="date"
               fullWidth
+              format="DD/MM/YYYY"
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -32,6 +33,7 @@ export default function FormFechas({ control, errors }) {
               label="Hasta"
               type="date"
               fullWidth
+              format="DD/MM/YYYY"
               slotProps={{
                 textField: {
                   fullWidth: true,

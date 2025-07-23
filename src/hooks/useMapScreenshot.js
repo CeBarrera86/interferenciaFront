@@ -1,9 +1,8 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import html2canvas from 'html2canvas';
 import { hideElementsTemporarily, Maps_CONTROL_CLASSES } from '../utils/mapUtils';
 
-export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallback, disableCaptureButton) {
-  const captureButtonRef = useRef(null);
+export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallback, disableCaptureButton, buttonsToHideRefs = []) {
 
   const handleCaptureMap = useCallback(async () => {
     if (disableCaptureButton) {
@@ -25,16 +24,16 @@ export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallbac
       });
     }
 
-    if (captureButtonRef.current) {
-      elementsToHide.push({ element: captureButtonRef.current, originalDisplay: captureButtonRef.current.style.display });
-    }
+    buttonsToHideRefs.forEach(ref => {
+      if (ref.current) {
+        elementsToHide.push({ element: ref.current, originalDisplay: ref.current.style.display });
+      }
+    });
 
     await hideElementsTemporarily(elementsToHide, async () => {
       const canvas = await html2canvas(mapContainerRef.current, {
         useCORS: true,
         allowTaint: true,
-        scrollY: -window.scrollY,
-        scrollX: -window.scrollX,
       });
 
       const imageDataUrl = canvas.toDataURL('image/png');
@@ -43,7 +42,7 @@ export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallbac
         onMapScreenshotCallback(imageDataUrl);
       }
     });
-  }, [onMapScreenshotCallback, disableCaptureButton, mapContainerRef, mapRef]); // Dependencias correctas
+  }, [onMapScreenshotCallback, disableCaptureButton, mapContainerRef, mapRef, buttonsToHideRefs]);
 
-  return { captureButtonRef, handleCaptureMap };
+  return { handleCaptureMap };
 }

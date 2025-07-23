@@ -1,12 +1,10 @@
-// src/components/Header.jsx
 import React from 'react';
-import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material'; // Importa useTheme
-import corpicoLogo from '../assets/Corpico_logo.svg'; // Importa el logo SVG
+import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material';
+import corpicoLogo from '../assets/Corpico_logo.svg';
 
 function Header() {
-  const theme = useTheme(); // Accede al objeto del tema
+  const theme = useTheme();
 
-  // Define los colores del borde utilizando las propiedades de theme.palette.corpico
   const borderColorsForGradient = [
     theme.palette.corpico.azul,
     theme.palette.corpico.violeta,
