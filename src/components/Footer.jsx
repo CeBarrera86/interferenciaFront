@@ -1,9 +1,20 @@
-import React from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, styled, Typography, Container } from '@mui/material';
 
-function Footer() {
-  const theme = useTheme();
+const StyledFooter = styled(Box)(({ theme }) => {
+  return {
+    backgroundColor: theme.palette.warning.main,
+    color: theme.palette.text.third,
+    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(0, 0, 0, .4)',
+    position: 'relative',
+    overflow: 'hidden',
+    height: '65px',
+    display: 'flex',
+    alignItems: 'center',
+  };
+});
 
+const GradientLine = styled(Box)(({ theme }) => {
   const borderColorsForGradient = [
     theme.palette.corpico.azul,
     theme.palette.corpico.violeta,
@@ -14,27 +25,29 @@ function Footer() {
     theme.palette.corpico.celeste,
   ];
 
+  return {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '5px',
+    background: `linear-gradient(to right, ${borderColorsForGradient.join(', ')})`,
+  };
+});
+
+const Footer = () => {
   return (
-    <Box
-      component="footer"
-      sx={{
-        width: '100%',
-        color: 'text.secondary',
-        bgcolor: theme.palette.corpico.amarillo,
-        py: 2,
-        mt: 'auto',
-        borderTop: '5px solid',
-        borderImageSlice: 1,
-        borderImageSource: `linear-gradient(to right, ${borderColorsForGradient.join(', ')})`,
-        textAlign: 'center',
-        boxSizing: 'border-box',
-      }}
-    >
-      <Typography variant="caption">
-        COOPERATIVA REGIONAL DE ELECTRICIDAD. OBRAS Y OTROS SERVICIOS DE GENERAL PICO LIMITADA. Mat. Nacional Nº1761. Mat. Provincial Nº1 (La Pampa)
-      </Typography>
-    </Box>
+    <StyledFooter>
+      <GradientLine />
+      <Container maxWidth="xl">
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', }} >
+          <Typography variant="body2" color="inherit">
+            COOPERATIVA REGIONAL DE ELECTRICIDAD. OBRAS Y OTROS SERVICIOS DE GENERAL PICO LIMITADA. Mat. Nacional Nº1761. Mat. Provincial Nº1 (La Pampa)
+          </Typography>
+        </Box>
+      </Container>
+    </StyledFooter>
   );
-}
+};
 
 export default Footer;

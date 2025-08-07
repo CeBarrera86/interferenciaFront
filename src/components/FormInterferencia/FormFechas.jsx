@@ -5,7 +5,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 export default function FormFechas({ control, errors }) {
   return (
-    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, position: 'relative', pt: 4 }}>
+    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 2, position: 'relative' }}>
       <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
         Fecha de Obra
       </Typography>

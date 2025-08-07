@@ -1,10 +1,20 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material';
-import corpicoLogo from '../assets/Corpico_logo.svg';
+import { AppBar, Toolbar, Typography, Box, styled, } from '@mui/material';
+import Logo from '../assets/corpico_logo.svg';
 
-function Header() {
-  const theme = useTheme();
+const StyledAppBar = styled(AppBar)(({ theme }) => {
+  return {
+    backgroundColor: theme.palette.background.main,
+    color: theme.palette.success.main,
+    boxShadow: '0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(0, 0, 0, .4)',
+    position: 'relative',
+    overflow: 'hidden',
+    height: '65px',
+    borderRadius: 0,
+  };
+});
 
+const GradientLine = styled(Box)(({ theme }) => {
   const borderColorsForGradient = [
     theme.palette.corpico.azul,
     theme.palette.corpico.violeta,
@@ -15,50 +25,40 @@ function Header() {
     theme.palette.corpico.celeste,
   ];
 
+  return {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '5px',
+    background: `linear-gradient(to right, ${borderColorsForGradient.join(', ')})`,
+  };
+});
+
+const Header = () => {
   return (
-    <AppBar
-      position="static"
-      sx={{
-        bgcolor: '#f5f5f5',
-        color: theme.palette.corpico.verde,
-        borderBottom: '5px solid',
-        borderImageSlice: 1,
-        borderImageSource: `linear-gradient(to right, ${borderColorsForGradient.join(', ')})`,
-        boxSizing: 'border-box',
-        borderRadius: 0,
-      }}
-    >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        {/* Logo a la izquierda */}
+    <StyledAppBar position="static">
+      <Toolbar sx={{ minHeight: '60px', height: '60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Logo */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <a href="https://www.corpico.com.ar" target="_blank" rel="noopener noreferrer">
-            <img
-              src={corpicoLogo}
-              alt="Logo Corpico"
-              style={{ height: '40px', marginRight: '16px' }}
-            />
+            <img src={Logo} alt="Corpico" style={{ height: '40px', marginRight: '10px' }} />
           </a>
         </Box>
-
-        {/* Título centrado */}
+        {/* Título */}
         <Typography
-          variant="h6"
-          component="div"
-          sx={{
-            flexGrow: 1,
-            textAlign: 'center',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          Interferencias Corpico
+          variant="h5"
+          sx={{ flexGrow: 1, textAlign: 'center', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }} >
+          Solicitud de Interferencias
         </Typography>
-
-        <Box sx={{ width: '112.91px' }} />
+        {/* Box oculto para centrar título */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <img src={Logo} alt="Corpico" style={{ height: '40px', marginRight: '10px', visibility: 'hidden' }} />
+        </Box>
       </Toolbar>
-    </AppBar>
+      <GradientLine />
+    </StyledAppBar>
   );
-}
+};
 
 export default Header;

@@ -4,7 +4,7 @@ import { Controller } from 'react-hook-form';
 
 export default function FormSolicitante({ control, errors }) {
   return (
-    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 4, mt: 3, position: 'relative', pt: 4 }}>
+    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 2, position: 'relative' }}>
       <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
         Datos Solicitante
       </Typography>

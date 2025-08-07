@@ -8,13 +8,14 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 dayjs.extend(localeData);
-import theme from './styles/theme';
+import appTheme from './styles/theme';
 import Header from './components/Header';
 import InterferenciasForm from './components/InterferenciasForm';
 import Footer from './components/Footer';
 
 function App() {
   dayjs.locale('es');
+  const theme = appTheme('light'); // O 'dark'
 
   return (
     <ThemeProvider theme={theme}>

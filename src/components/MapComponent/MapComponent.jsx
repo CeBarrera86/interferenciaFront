@@ -1,4 +1,5 @@
 import React, { useRef, useCallback } from 'react';
+import { Box } from '@mui/material';
 import { GoogleMap, useJsApiLoader, DrawingManager } from '@react-google-maps/api';
 import { Maps_API_KEY, containerStyle, defaultCenter, libraries } from '../../config/mapConstants';
 import { getMapOptions } from '../../config/mapOptions';
@@ -60,40 +61,42 @@ export default function MapComponent({ zoom, onMapClick, markerPosition, onMapSc
   if (!isLoaded) return <div>Cargando Mapa...</div>;
 
   return (
-    <div ref={mapContainerRef} style={containerStyle}>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={currentMarker}
-        zoom={zoom || 13}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-        onClick={handleMapClick}
-        options={getMapOptions()}
-      >
-        {drawingManagerOptions && (
-          <DrawingManager
-            onLoad={onDrawingManagerLoad}
-            onOverlayComplete={onOverlayComplete}
-            options={drawingManagerOptions}
-          />
-        )}
-      </GoogleMap>
+    <Box sx={{ mb: 2, mt: 2, position: 'relative' }}>
+      <div ref={mapContainerRef} style={containerStyle}>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={currentMarker}
+          zoom={zoom || 13}
+          onLoad={onLoad}
+          onUnmount={onUnmount}
+          onClick={handleMapClick}
+          options={getMapOptions()}
+        >
+          {drawingManagerOptions && (
+            <DrawingManager
+              onLoad={onDrawingManagerLoad}
+              onOverlayComplete={onOverlayComplete}
+              options={drawingManagerOptions}
+            />
+          )}
+        </GoogleMap>
 
-      <div style={{
-        position: 'absolute',
-        bottom: 16,
-        left: 16,
-        zIndex: 1000,
-        display: 'flex',
-        gap: '10px'
-      }}>
-        <MapButton ref={captureButtonRef} onClick={handleCaptureMap} disabled={disableCaptureButton}>
-          Capturar Mapa
-        </MapButton>
-        <MapButton ref={clearButtonRef} onClick={clearAllOverlays} color="secondary">
-          Borrar Dibujo
-        </MapButton>
+        <div style={{
+          position: 'absolute',
+          bottom: 16,
+          left: 16,
+          zIndex: 1000,
+          display: 'flex',
+          gap: '10px'
+        }}>
+          <MapButton ref={captureButtonRef} onClick={handleCaptureMap} disabled={disableCaptureButton}>
+            Capturar Mapa
+          </MapButton>
+          <MapButton ref={clearButtonRef} onClick={clearAllOverlays} color="secondary">
+            Borrar Dibujo
+          </MapButton>
+        </div>
       </div>
-    </div>
+    </Box>
   );
 }

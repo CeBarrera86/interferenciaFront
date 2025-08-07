@@ -13,6 +13,8 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import FormArchivos from './FormInterferencia/FormArchivos';
+import FormServicios from './FormInterferencia/FormServicios';
 import FormSolicitante from './FormInterferencia/FormSolicitante';
 import FormUbicacion from './FormInterferencia/FormUbicacion';
 import FormFechas from './FormInterferencia/FormFechas';
@@ -60,11 +62,12 @@ export default function InterferenciasForm() {
           <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6">Registrar Nueva Interferencia</Typography>
             <form onSubmit={handleSubmit(onSubmit)}>
+              <FormServicios control={control} errors={errors} />
               <FormSolicitante control={control} errors={errors} />
-              <FormUbicacion
+              <FormUbicacion control={control} errors={errors} localidades={localidades} />
+              <FormArchivos
                 control={control}
                 errors={errors}
-                localidades={localidades}
                 onFileChange={handleFormUbicacionFileChange}
                 isFileUploadDisabled={activeAttachmentType === 'map'}
                 mapScreenshotActive={activeAttachmentType === 'map'}
