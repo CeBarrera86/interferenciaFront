@@ -36,3 +36,30 @@ export const Maps_CONTROL_CLASSES = [
   '.gmnoprint[draggable="false"]',
   '.gmnoprint[role="group"]',
 ];
+
+/**
+ * Verifica si un punto geográfico se encuentra dentro de una forma geométrica dibujada en el mapa.
+ * Soporta polígonos, rectángulos y círculos.
+ * @param {{lat: number, lng: number}} punto - El punto a verificar.
+ * @param {{type: 'polygon'|'rectangle'|'circle', googleObject: any}} forma - La forma de Google Maps (con su objeto) a usar para la verificación.
+ * @returns {boolean} - true si el punto está dentro de la forma, de lo contrario false.
+ */
+export const esPuntoEnForma = (punto, forma) => {
+  if (!window.google || !window.google.maps || !window.google.maps.geometry) {
+    console.warn("La API de Google Maps (o la librería geometry) no está cargada para esPuntoEnForma.");
+    return false;
+  }
+  const puntoGoogle = new window.google.maps.LatLng(punto.lat, punto.lng);
+
+  if (forma.type === 'polygon' && forma.googleObject) {
+    return window.google.maps.geometry.poly.containsLocation(puntoGoogle, forma.googleObject);
+  } else if (forma.type === 'rectangle' && forma.googleObject) {
+    return forma.googleObject.getBounds().contains(puntoGoogle);
+  } else if (forma.type === 'circle' && forma.googleObject) {
+    const centro = forma.googleObject.getCenter();
+    const radio = forma.googleObject.getRadius();
+    const distancia = window.google.maps.geometry.spherical.computeDistanceBetween(puntoGoogle, centro);
+    return distancia <= radio;
+  }
+  return false;
+};

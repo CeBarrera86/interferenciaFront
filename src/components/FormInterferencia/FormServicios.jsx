@@ -1,7 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Box, Typography, Grid, FormControl, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import { Controller } from 'react-hook-form';
+import { interferenciasSchema } from '../../validation/interferenciasSchema'; // Asegúrate de que esta sea la ruta correcta
 
+// Definiciones de servicios
 const serviciosTodos = { descripcion: 'Todos los Servicios', id: 1 };
 const serviciosOpciones = [
   { descripcion: 'Electricidad', id: 3 },
@@ -9,6 +11,12 @@ const serviciosOpciones = [
   { descripcion: 'Telefonía, Internet y TV', id: 6 },
 ];
 
+/**
+ * Componente que gestiona el grupo de checkboxes para los servicios.
+ * @param {object} props - Propiedades del componente.
+ * @param {object} props.field - Objeto de campo de react-hook-form.
+ * @param {object} props.errors - Objeto de errores del formulario.
+ */
 const CheckboxGroup = ({ field, errors }) => {
   const { onChange, value = [] } = field;
 
@@ -19,11 +27,13 @@ const CheckboxGroup = ({ field, errors }) => {
     if (clickedId === serviciosTodos.id) {
       newValues = event.target.checked ? [serviciosTodos.id] : [];
     } else {
-      if (event.target.checked) {
-        newValues = value.filter(v => v !== serviciosTodos.id);
-        newValues = [...newValues, clickedId];
+      const isChecked = event.target.checked;
+      const filteredValues = value.filter(v => v !== serviciosTodos.id);
+
+      if (isChecked) {
+        newValues = [...filteredValues, clickedId];
       } else {
-        newValues = value.filter((v) => v !== clickedId);
+        newValues = filteredValues.filter((v) => v !== clickedId);
       }
 
       const allIndividualServices = serviciosOpciones.map(opcion => opcion.id);
@@ -32,17 +42,13 @@ const CheckboxGroup = ({ field, errors }) => {
       if (allSelected) {
         newValues = [serviciosTodos.id];
       }
-
-      if (value.includes(serviciosTodos.id) && !event.target.checked) {
-        newValues = allIndividualServices;
-      }
     }
+
     onChange(newValues);
   }, [onChange, value]);
 
   return (
     <Grid container spacing={2}>
-      {/* Columna Izquierda */}
       <Grid size={{ xs: 12, md: 5 }}>
         <FormGroup>
           <FormControlLabel
@@ -51,24 +57,30 @@ const CheckboxGroup = ({ field, errors }) => {
           />
         </FormGroup>
       </Grid>
-      {/* Columna Derecha */}
       <Grid size={{ xs: 12, md: 7 }}>
         <FormGroup>
           {serviciosOpciones.map((opcion) => (
             <FormControlLabel
               key={opcion.id}
               control={
-                <Checkbox checked={value.includes(opcion.id)} onChange={handleChange} value={opcion.id} disabled={value.includes(serviciosTodos.id)} />
+                <Checkbox
+                  checked={value.includes(opcion.id)}
+                  onChange={handleChange}
+                  value={opcion.id}
+                  disabled={value.includes(serviciosTodos.id)}
+                />
               }
               label={opcion.descripcion}
             />
           ))}
         </FormGroup>
       </Grid>
-      {!!errors.SOI_SERVICIO && (
-        <Typography variant="caption" color="error" sx={{ pl: 2 }}> {errors.SOI_SERVICIO.message} </Typography>
-      )}
-    </Grid>
+      {
+        !!errors.SOI_SERVICIO && (
+          <Typography variant="caption" color="error" sx={{ pl: 2 }}> {errors.SOI_SERVICIO.message} </Typography>
+        )
+      }
+    </Grid >
   );
 };
 

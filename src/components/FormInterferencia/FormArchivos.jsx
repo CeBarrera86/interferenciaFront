@@ -34,7 +34,7 @@ export default function FormUbicacion({ control, errors, onFileChange, isFileUpl
   }, [onFileChange]);
 
   return (
-    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 2, position: 'relative' }}>
+    <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 5, position: 'relative' }}>
       <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
         Adjuntar archivos
       </Typography>
