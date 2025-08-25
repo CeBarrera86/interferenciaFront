@@ -9,9 +9,9 @@ import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 dayjs.extend(localeData);
 import appTheme from './styles/theme';
-import Header from './components/Header';
+import Header from './components/Layouts/Header';
 import InterferenciasForm from './components/InterferenciasForm';
-import Footer from './components/Footer';
+import Footer from './components/Layouts/Footer';
 
 function App() {
   dayjs.locale('es');

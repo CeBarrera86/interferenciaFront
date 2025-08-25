@@ -1,15 +1,5 @@
-// src/components/Dialogos/ErrorDialog.jsx
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Button,
-  useTheme,
-} from '@mui/material';
+import { Box, Typography, Dialog, DialogContent, DialogTitle, IconButton, Button, useTheme, } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
@@ -33,8 +23,7 @@ export default function ErrorDialog({ open, onClose, message, details }) {
             </Typography>
           </Box>
           <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close"
-            sx={{ color: theme.palette.error.contrastText }}
-          >
+            sx={{ color: theme.palette.error.contrastText }} >
             <CloseIcon />
           </IconButton>
         </Box>

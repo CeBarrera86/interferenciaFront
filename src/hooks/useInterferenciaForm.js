@@ -2,34 +2,72 @@ import { useState, useCallback, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { interferenciasSchema } from '../validation/interferenciasSchema';
-import { esPuntoEnForma } from '../utils/mapUtils';
 
 // Definir los valores por defecto para una nueva ubicación
 const defaultUbicacion = {
-  SOI_CALLE: '',
-  SOI_ALTURA: '',
-  SOI_PISO: '',
-  SOI_DPTO: '',
-  SOI_VEREDA: 'P',
-  SOI_ENTRE1: '',
-  SOI_ENTRE2: '',
-  SOI_LOCALIDAD_ID: '',
-  SOI_LATITUD: -35.65867,
-  SOI_LONGITUD: -63.75715,
+  USI_CALLE: '',
+  USI_ALTURA: '',
+  USI_PISO: '',
+  USI_DPTO: '',
+  USI_VEREDA: 'P',
+  USI_ENTRE1: '',
+  USI_ENTRE2: '',
+  USI_LOCALIDAD_ID: '',
+  USI_LATITUD: -35.65867,
+  USI_LONGITUD: -63.75715,
+};
+
+// Se han movido los valores por defecto aquí para evitar la dependencia de un archivo externo.
+const formDefaultValues = {
+  DSI_CUIT: '',
+  DSI_NOMBRE: '',
+  DSI_APELLIDO: '',
+  DSI_PERSONA: 'F',
+  DSI_EMAIL: '',
+  SOI_PROYECTO: '',
+  SOI_DESCRIPCION: '',
+  SOI_DESDE: null,
+  SOI_HASTA: null,
+  SOI_DOCUMENTO: null,
+  SOI_MAPA: null,
+};
+
+// Utilidad para validar si un punto está dentro de una forma
+const esPuntoEnForma = (punto, forma) => {
+  if (!window.google || !window.google.maps || !window.google.maps.geometry) {
+    console.error("Google Maps API o la librería de Geometría no está cargada.");
+    return false;
+  }
+
+  const latLng = new window.google.maps.LatLng(punto.lat, punto.lng);
+  let isInside = false;
+
+  if (forma.type === 'polygon') {
+    const polygon = new window.google.maps.Polygon({ paths: forma.paths });
+    isInside = window.google.maps.geometry.poly.containsLocation(latLng, polygon);
+  } else if (forma.type === 'rectangle') {
+    const bounds = new window.google.maps.LatLngBounds(
+      new window.google.maps.LatLng(forma.bounds.south, forma.bounds.west),
+      new window.google.maps.LatLng(forma.bounds.north, forma.bounds.east)
+    );
+    isInside = bounds.contains(latLng);
+  }
+
+  return isInside;
 };
 
 export function useInterferenciaForm() {
-  const { control, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+    reset,
+  } = useForm({
     resolver: yupResolver(interferenciasSchema),
     defaultValues: {
-      SOI_CUIT: '',
-      SOI_NOMBRE: '',
-      SOI_APELLIDO: '',
-      SOI_PERSONA: 'F',
-      SOI_EMAIL: '',
-      SOI_DESDE: null,
-      SOI_HASTA: null,
-      SOI_ADJUNTO: null,
+      ...formDefaultValues,
       SOI_UBICACIONES: [defaultUbicacion],
     },
   });
@@ -39,135 +77,65 @@ export function useInterferenciaForm() {
     name: 'SOI_UBICACIONES',
   });
 
-  const adjuntoExistente = watch('SOI_ADJUNTO');
-  const [datosCapturaMapa, setDatosCapturaMapa] = useState(null);
-  const [abrirVistaPreviaMapa, setAbrirVistaPreviaMapa] = useState(false);
-  const [tipoAdjuntoActivo, setTipoAdjuntoActivo] = useState(null);
   const [abrirDialogoExito, setAbrirDialogoExito] = useState(false);
-  const [mensajeExito, setMensajeExito] = useState('');
-  const [idInterferencia, setIdInterferencia] = useState(null);
   const [abrirDialogoError, setAbrirDialogoError] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState('');
   const [mensajeError, setMensajeError] = useState('');
   const [detallesError, setDetallesError] = useState('');
-  const [formasDibujadas, setFormasDibujadas] = useState([]);
+  const [idInterferencia, setIdInterferencia] = useState(null);
+  const [abrirVistaPreviaMapa, setAbrirVistaPreviaMapa] = useState(false);
+  const [datosCapturaMapa, setDatosCapturaMapa] = useState(null);
   const [puedeCapturarMapa, setPuedeCapturarMapa] = useState(false);
+  const [formasDibujadas, setFormasDibujadas] = useState([]);
 
-  useEffect(() => {
-    if (adjuntoExistente) {
-      if (adjuntoExistente instanceof File && adjuntoExistente.name && adjuntoExistente.name.startsWith('map_screenshot')) {
-        setTipoAdjuntoActivo('map');
-      } else if (adjuntoExistente instanceof File) {
-        setTipoAdjuntoActivo('file');
-      }
-    } else {
-      setTipoAdjuntoActivo(null);
-    }
-  }, [adjuntoExistente]);
+  // Observa el estado del formulario
+  const adjuntoMapa = watch('SOI_MAPA');
+  const adjuntoDocumento = watch('SOI_DOCUMENTO');
+  const latitudActual = watch('SOI_UBICACIONES.0.USI_LATITUD');
+  const longitudActual = watch('SOI_UBICACIONES.0.USI_LONGITUD');
 
-  // Función para agregar una nueva ubicación con los valores por defecto
-  const agregarUbicacion = useCallback(() => {
-    append(defaultUbicacion);
-  }, [append]);
-
-  // Función para eliminar una ubicación
-  const eliminarUbicacion = useCallback((index) => {
-    remove(index);
-  }, [remove]);
-
-  const manejarCapturaMapa = useCallback((imageDataUrl) => {
+  // Captura del mapa
+  const manejarCapturaMapa = useCallback(async (imageDataUrl) => {
     setDatosCapturaMapa(imageDataUrl);
+    setAbrirVistaPreviaMapa(true);
 
-    if (imageDataUrl && typeof imageDataUrl === 'string') {
-      const byteString = atob(imageDataUrl.split(',')[1]);
-      const mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      const blob = new Blob([ab], { type: mimeString });
-      const file = new File([blob], 'map_screenshot.png', { type: mimeString });
+    // Convertir dataURL en blob para que el backend lo reciba como archivo real
+    const res = await fetch(imageDataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], `mapa_${Date.now()}.png`, { type: 'image/png' });
 
-      setValue('SOI_ADJUNTO', file, { shouldDirty: true });
-      setAbrirVistaPreviaMapa(true);
-    } else {
-      console.warn("manejarCapturaMapa llamado sin datos de imagen válidos.");
-    }
+    setValue('SOI_MAPA', file, { shouldDirty: true });
+    // Importante: NO limpiar SOI_DOCUMENTO
   }, [setValue]);
 
+  // Carga manual de archivo
   const manejarCambioArchivoUbicacion = useCallback((file) => {
-    setValue('SOI_ADJUNTO', file, { shouldDirty: true });
+    setValue('SOI_DOCUMENTO', file, { shouldDirty: true });
+    // Importante: NO limpiar SOI_MAPA
+  }, [setValue]);
+
+  // Limpieza de ambos adjuntos (puedes crear limpiezas separadas si querés más control)
+  const limpiarAdjunto = useCallback(() => {
+    setValue('SOI_DOCUMENTO', null);
+    setValue('SOI_MAPA', null);
     setDatosCapturaMapa(null);
+    setFormasDibujadas([]);
+  }, [setValue]);
+
+  const manejarClickMapa = useCallback((lat, lng) => {
+    setValue('SOI_UBICACIONES.0.USI_LATITUD', lat);
+    setValue('SOI_UBICACIONES.0.USI_LONGITUD', lng);
   }, [setValue]);
 
   const cerrarVistaPreviaMapa = useCallback(() => {
     setAbrirVistaPreviaMapa(false);
   }, []);
 
-  const manejarClickMapa = useCallback((lat, lng, ubicacionIndex = 0) => {
-    setValue(`SOI_UBICACIONES.${ubicacionIndex}.SOI_LATITUD`, lat, { shouldValidate: true });
-    setValue(`SOI_UBICACIONES.${ubicacionIndex}.SOI_LONGITUD`, lng, { shouldValidate: true });
-  }, [setValue]);
-
-  const limpiarAdjunto = useCallback(() => {
-    setValue('SOI_ADJUNTO', null, { shouldDirty: true });
-    setDatosCapturaMapa(null);
-  }, [setValue]);
-
-  const resetearFormularioYMapa = useCallback(() => {
-    reset();
-    setValue('SOI_UBICACIONES', [defaultUbicacion]);
-    setValue('SOI_ADJUNTO', null);
-    setDatosCapturaMapa(null);
-    setTipoAdjuntoActivo(null);
-    setAbrirDialogoExito(false);
-    setMensajeExito('');
-    setIdInterferencia(null);
-    setAbrirDialogoError(false);
-    setMensajeError('');
-    setDetallesError('');
-    setFormasDibujadas([]);
-    setPuedeCapturarMapa(false);
-  }, [reset, setValue]);
-
-  const cerrarDialogoError = useCallback(() => {
-    setAbrirDialogoError(false);
-    setMensajeError('');
-    setDetallesError('');
-  }, []);
-
-  useEffect(() => {
-    const ubicacionActiva = ubicaciones[0];
-    const marcadorEstablecido = (ubicacionActiva?.SOI_LATITUD !== -35.65867 || ubicacionActiva?.SOI_LONGITUD !== -63.75715);
-    const hayFormasDibujadas = formasDibujadas.length > 0;
-    const posicionMarcador = { lat: ubicacionActiva?.SOI_LATITUD, lng: ubicacionActiva?.SOI_LONGITUD };
-
-    let permitirCaptura = false;
-
-    if (marcadorEstablecido && !hayFormasDibujadas) {
-      permitirCaptura = true;
-    } else if (marcadorEstablecido && hayFormasDibujadas) {
-      const marcadorEnCualquierForma = formasDibujadas.some(forma => esPuntoEnForma(posicionMarcador, forma));
-      if (marcadorEnCualquierForma) {
-        permitirCaptura = true;
-      } else {
-        permitirCaptura = false;
-      }
-    } else {
-      permitirCaptura = false;
-    }
-
-    if (adjuntoExistente && !(adjuntoExistente instanceof File && adjuntoExistente.name && adjuntoExistente.name.startsWith('map_screenshot'))) {
-      permitirCaptura = false;
-    }
-
-    setPuedeCapturarMapa(permitirCaptura);
-  }, [ubicaciones, formasDibujadas, adjuntoExistente]);
-
   const enviarFormulario = useCallback(async (data) => {
     console.log('Datos a enviar (desde hook):', data);
 
     const formData = new FormData();
+
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         if (key === 'SOI_UBICACIONES' && Array.isArray(data[key])) {
@@ -176,21 +144,30 @@ export function useInterferenciaForm() {
               formData.append(`SOI_UBICACIONES[${index}][${ubiKey}]`, ubicacion[ubiKey]);
             }
           });
-        } else if (data[key] instanceof Date) {
-          formData.append(key, data[key].toISOString());
         } else if (data[key] instanceof File) {
+          // Adjunta archivos
           formData.append(key, data[key], data[key].name);
-        } else if (key === 'SOI_SERVICIO' && Array.isArray(data[key])) {
-          // Aquí se transforman los servicios a una cadena antes de enviarlos
+        } else if (key === 'SOI_EMPRESA' && Array.isArray(data[key])) {
           formData.append(key, data[key].join(','));
+        } else if (key === 'SOI_DESDE' || key === 'SOI_HASTA') {
+          // Maneja las fechas específicamente, convirtiéndolas a YYYY-MM-DD
+          let dateObject = data[key];
+          if (typeof dateObject === 'string') {
+            dateObject = new Date(dateObject);
+          }
+          const formattedDate = dateObject.getFullYear() + '-' +
+            ('0' + (dateObject.getMonth() + 1)).slice(-2) + '-' +
+            ('0' + dateObject.getDate()).slice(-2);
+          formData.append(key, formattedDate);
         } else {
+          // Adjunta todos los demás campos
           formData.append(key, data[key]);
         }
       }
     }
 
-    // Log para ver cómo se está construyendo el FormData (opcional)
-    for (var pair of formData.entries()) {
+    // Debug
+    for (let pair of formData.entries()) {
       console.log(pair[0] + ', ' + pair[1]);
     }
 
@@ -202,7 +179,7 @@ export function useInterferenciaForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error al enviar el formulario (desde hook):', response.status, errorData);
+        console.error('Error al enviar el formulario:', response.status, errorData);
 
         setMensajeError(errorData.message || 'Error desconocido al procesar la solicitud.');
         setDetallesError(errorData.error || (errorData.errors && errorData.errors.map(e => e.msg).join(', ')) || '');
@@ -210,7 +187,7 @@ export function useInterferenciaForm() {
         return false;
       } else {
         const result = await response.json();
-        console.log('Formulario enviado con éxito (desde hook):', result);
+        console.log('Formulario enviado con éxito:', result);
 
         setMensajeExito(result.message);
         setIdInterferencia(result.id);
@@ -218,7 +195,7 @@ export function useInterferenciaForm() {
         return true;
       }
     } catch (error) {
-      console.error('Error de red o en la petición (desde hook):', error);
+      console.error('Error de red o en la petición:', error);
       setMensajeError('Error de conexión. No se pudo llegar al servidor.');
       setDetallesError(error.message);
       setAbrirDialogoError(true);
@@ -226,23 +203,48 @@ export function useInterferenciaForm() {
     }
   }, []);
 
-  // Latitud y longitud de la primera ubicación, lo cual está bien si solo hay un marcador en el mapa.
-  const latitudActual = watch('SOI_UBICACIONES.0.SOI_LATITUD');
-  const longitudActual = watch('SOI_UBICACIONES.0.SOI_LONGITUD');
+  const resetearFormularioYMapa = useCallback(() => {
+    reset();
+    setAbrirDialogoExito(false);
+    setFormasDibujadas([]);
+    limpiarAdjunto();
+  }, [reset, limpiarAdjunto]);
+
+  const cerrarDialogoError = useCallback(() => {
+    setAbrirDialogoError(false);
+  }, []);
+
+  // Lógica para determinar si se puede capturar el mapa
+  useEffect(() => {
+    const hayUbicacion = latitudActual !== -35.65867 || longitudActual !== -63.75715;
+    const hayFormas = formasDibujadas.length > 0;
+    const posicionMarcador = { lat: latitudActual, lng: longitudActual };
+
+    let permitirCaptura = false;
+
+    if (hayUbicacion && !hayFormas) {
+      permitirCaptura = true;
+    } else if (hayUbicacion && hayFormas) {
+      const marcadorEnCualquierForma = formasDibujadas.some(forma => esPuntoEnForma(posicionMarcador, forma));
+      permitirCaptura = marcadorEnCualquierForma;
+    } else {
+      permitirCaptura = false;
+    }
+
+    // ❌ Ya no se bloquea si hay un documento cargado
+    setPuedeCapturarMapa(permitirCaptura);
+  }, [latitudActual, longitudActual, formasDibujadas]);
 
   return {
     control,
     handleSubmit,
     errors,
-    ubicaciones,
-    agregarUbicacion,
-    eliminarUbicacion,
     latitudActual,
     longitudActual,
-    adjuntoExistente,
+    adjuntoMapa,
+    adjuntoDocumento,
     datosCapturaMapa,
     abrirVistaPreviaMapa,
-    tipoAdjuntoActivo,
     manejarCapturaMapa,
     manejarCambioArchivoUbicacion,
     cerrarVistaPreviaMapa,
@@ -259,5 +261,8 @@ export function useInterferenciaForm() {
     cerrarDialogoError,
     setFormasDibujadas,
     puedeCapturarMapa,
+    ubicaciones,
+    agregarUbicacion: useCallback(() => append(defaultUbicacion), [append]),
+    eliminarUbicacion: useCallback((index) => remove(index), [remove]),
   };
 }

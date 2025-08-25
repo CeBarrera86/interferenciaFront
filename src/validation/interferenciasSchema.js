@@ -1,83 +1,47 @@
 import * as yup from 'yup';
 
-// Esquema para una única ubicación dentro del array
 const ubicacionSchema = yup.object().shape({
-  SOI_CALLE: yup.string()
-    .required('La calle es requerida')
-    .max(50, 'Calle no debe exceder los 50 caracteres'),
-  SOI_ALTURA: yup.string()
-    .required('La altura es requerida')
-    .max(10, 'Altura no debe exceder los 10 caracteres'),
-  SOI_PISO: yup.string()
-    .max(10, 'Piso no debe exceder los 10 caracteres')
-    .nullable(),
-  SOI_DPTO: yup.string()
-    .max(10, 'Dpto no debe exceder los 10 caracteres')
-    .nullable(),
-  SOI_ENTRE1: yup.string()
-    .max(50, 'Entre Calle 1 no debe exceder los 50 caracteres')
-    .nullable(),
-  SOI_ENTRE2: yup.string()
-    .max(50, 'Entre Calle 2 no debe exceder los 50 caracteres')
-    .nullable(),
-  SOI_VEREDA: yup.string()
-    .required('La vereda es requerida')
-    .oneOf(['P', 'I'], 'Vereda debe ser "P" (Par) o "I" (Impar)'),
-  SOI_LATITUD: yup.number()
-    .required('Latitud es requerida')
-    .typeError('Latitud debe ser un número'),
-  SOI_LONGITUD: yup.number()
-    .required('Longitud es requerida')
-    .typeError('Longitud debe ser un número'),
-  SOI_LOCALIDAD_ID: yup.number()
-    .integer('Localidad debe ser un número entero')
-    .min(1, 'Localidad es requerida')
-    .required('Localidad es requerida')
-    .typeError('Localidad es requerida'),
+  USI_CALLE: yup.string().required('La calle es requerida'),
+  USI_ALTURA: yup.string().required('La altura es requerida')
+    .test(
+      'is-valid-altura',
+      'La altura debe ser un número válido',
+      (value) => {
+        return !isNaN(parseFloat(value));
+      }
+    ),
+  USI_PISO: yup.string().notRequired(),
+  USI_DPTO: yup.string().notRequired(),
+  USI_VEREDA: yup.string().required('La vereda es requerida'),
+  USI_ENTRE1: yup.string().notRequired(),
+  USI_ENTRE2: yup.string().notRequired(),
+  USI_LOCALIDAD_ID: yup.string().required('La localidad es requerida'),
+  USI_LATITUD: yup.number().nullable().required('La latitud es requerida'),
+  USI_LONGITUD: yup.number().nullable().required('La longitud es requerida'),
 });
 
 export const interferenciasSchema = yup.object().shape({
-  SOI_CUIT: yup.string()
-    .required('CUIT es requerido')
-    .max(20, 'CUIT no debe exceder los 20 caracteres'),
-  SOI_NOMBRE: yup.string()
-    .required('Nombre es requerido')
-    .max(50, 'Nombre no debe exceder los 50 caracteres'),
-  SOI_APELLIDO: yup.string()
-    .required('Apellido es requerido')
-    .max(50, 'Apellido no debe exceder los 50 caracteres'),
-  SOI_PERSONA: yup.string()
-    .required('Tipo de persona es requerido')
-    .oneOf(['F', 'J'], 'Tipo de persona debe ser "F" (Física) o "J" (Jurídica)'),
-  SOI_EMAIL: yup.string()
-    .email('Email inválido')
-    .required('Email es requerido')
-    .max(50, 'Email no debe exceder los 50 caracteres'),
-  SOI_DESDE: yup.date()
-    .required('Fecha desde es requerida')
-    .typeError('Fecha inválida'),
-  SOI_HASTA: yup.date()
-    .required('Fecha hasta es requerida')
-    .typeError('Fecha inválida')
-    .min(yup.ref('SOI_DESDE'), 'La fecha hasta no puede ser anterior a la fecha desde'),
-  SOI_SERVICIO: yup.array()
-    .of(yup.number())
-    .min(1, 'Debe seleccionar al menos un servicio.')
-    .required('Debe seleccionar al menos un servicio.')
-    .typeError('Debe seleccionar al menos un servicio.'),
-  SOI_ADJUNTO: yup.mixed()
-    .required('Debe adjuntar un archivo o tomar una captura del mapa.')
-    .nullable()
-    .test(
-      'file-or-map-present',
-      'Debe adjuntar un archivo o tomar una captura del mapa.',
-      (value) => {
-        return value instanceof File;
-      }
-    ),
-  // VALIDACIÓN AGREGADA
-  SOI_UBICACIONES: yup.array()
-    .of(ubicacionSchema)
-    .min(1, 'Debe haber al menos una ubicación.')
-    .required('Debe haber al menos una ubicación.'),
+  DSI_CUIT: yup.string().required('El CUIT es requerido'),
+  DSI_NOMBRE: yup.string().required('El nombre es requerido'),
+  DSI_APELLIDO: yup.string().required('El apellido es requerido'),
+  DSI_PERSONA: yup.string().required('El tipo de persona es requerido'),
+  DSI_EMAIL: yup.string().email('El formato del email no es válido').required('El email es requerido'),
+  SOI_PROYECTO: yup.string().required('El nombre del proyecto es requerido'),
+  SOI_DESCRIPCION: yup.string().required('La descripción del proyecto es requerida'),
+  SOI_DESDE: yup.string().required('La fecha de inicio es requerida'),
+  SOI_HASTA: yup.string().required('La fecha de fin es requerida'),
+  SOI_UBICACIONES: yup.array().of(ubicacionSchema).min(1, 'Debe agregar al menos una ubicación de interferencia.').required(),
+  SOI_EMPRESA: yup.array().min(1, 'Debe seleccionar al menos un tipo de empresa afectado.').required(),
+  SOI_DOCUMENTO: yup.mixed().nullable().notRequired(),
+  SOI_MAPA: yup.mixed().nullable().notRequired(),
+
+  // Al menos uno de los se adjunta.
+  adjuntos: yup.mixed().test(
+    'at-least-one-adjunto',
+    'Debe adjuntar un archivo o una captura de mapa',
+    function (value) {
+      const { SOI_DOCUMENTO, SOI_MAPA } = this.parent;
+      return !!SOI_DOCUMENTO || !!SOI_MAPA;
+    }
+  ),
 });

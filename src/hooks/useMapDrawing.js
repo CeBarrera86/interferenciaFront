@@ -1,33 +1,21 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
-import { getDrawingManagerOptions as getBaseDrawingManagerOptions } from '../config/mapOptions';
+import { useState, useCallback, useRef } from 'react';
 
-export function useMapDrawing(isLoaded, onDrawnShapesChange) {
-  const drawingManagerRef = useRef(null);
+export function useMapDrawing(drawingManagerRef, isLoaded, onDrawnShapesChange) {
   const [drawnOverlays, setDrawnOverlays] = useState([]);
-  const [drawnShapes, setDrawnShapesState] = useState([]);
 
-  // Actualiza el estado local y notifica al padre
-  const setDrawnShapes = useCallback((newShapes) => {
-    setDrawnShapesState(newShapes);
-    if (onDrawnShapesChange) {
-      onDrawnShapesChange(newShapes);
-    }
-  }, [onDrawnShapesChange]);
-
-  const onDrawingManagerLoad = useCallback((drawingManager) => {
-    drawingManagerRef.current = drawingManager;
-  }, []);
+  const clearAllOverlays = useCallback(() => {
+    drawnOverlays.forEach(overlay => {
+      overlay.setMap(null);
+    });
+    setDrawnOverlays([]);
+    onDrawnShapesChange([]);
+  }, [drawnOverlays, onDrawnShapesChange]);
 
   const onOverlayComplete = useCallback((overlayEvent) => {
-    // Limpiar overlays anteriores si solo se permite uno
-    if (drawnOverlays.length > 0) {
-      drawnOverlays.forEach(overlay => overlay.setMap(null));
-      setDrawnOverlays([]);
-      setDrawnShapes([]); // También limpiar las formas lógicas
-    }
+    clearAllOverlays();
 
     const newOverlay = overlayEvent.overlay;
-    setDrawnOverlays([newOverlay]); // Almacenar solo el nuevo overlay
+    setDrawnOverlays([newOverlay]);
 
     let newShape = null;
     if (overlayEvent.type === window.google.maps.drawing.OverlayType.POLYGON) {
@@ -53,15 +41,14 @@ export function useMapDrawing(isLoaded, onDrawnShapesChange) {
     }
 
     if (newShape) {
-      setDrawnShapes([newShape]); // Almacenar solo la nueva forma
+      onDrawnShapesChange([newShape]);
       drawingManagerRef.current?.setDrawingMode(null);
 
-      // Añadir listeners para cambios en la forma (edición)
       if (newShape.type === 'polygon') {
         newShape.googleObject.getPaths().forEach(path => {
-          window.google.maps.event.addListener(path, 'insert_at', () => setDrawnShapes([newShape]));
-          window.google.maps.event.addListener(path, 'set_at', () => setDrawnShapes([newShape]));
-          window.google.maps.event.addListener(path, 'remove_at', () => setDrawnShapes([newShape]));
+          window.google.maps.event.addListener(path, 'insert_at', () => onDrawnShapesChange([newShape]));
+          window.google.maps.event.addListener(path, 'set_at', () => onDrawnShapesChange([newShape]));
+          window.google.maps.event.addListener(path, 'remove_at', () => onDrawnShapesChange([newShape]));
         });
       } else if (newShape.type === 'rectangle') {
         window.google.maps.event.addListener(newShape.googleObject, 'bounds_changed', () => {
@@ -74,33 +61,15 @@ export function useMapDrawing(isLoaded, onDrawnShapesChange) {
             south: southWest.lat(),
             west: southWest.lng(),
           };
-          setDrawnShapes([newShape]);
+          onDrawnShapesChange([newShape]);
         });
       }
     }
-  }, [drawnOverlays, setDrawnShapes]);
-
-  const clearAllOverlays = useCallback(() => {
-    drawnOverlays.forEach(overlay => {
-      overlay.setMap(null);
-    });
-    setDrawnOverlays([]);
-    setDrawnShapes([]);
-  }, [drawnOverlays, setDrawnShapes]);
-
-  const drawingManagerOptions = useMemo(() => {
-    if (isLoaded && window.google?.maps?.drawing) {
-      return getBaseDrawingManagerOptions();
-    }
-    return null;
-  }, [isLoaded]);
+  }, [clearAllOverlays, onDrawnShapesChange, drawingManagerRef]);
 
   return {
-    drawingManagerRef,
-    onDrawingManagerLoad,
     onOverlayComplete,
-    drawnShapes,
-    drawingManagerOptions,
-    clearAllOverlays
+    drawnShapes: drawnOverlays,
+    clearAllOverlays,
   };
 }

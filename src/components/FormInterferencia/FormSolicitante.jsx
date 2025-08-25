@@ -12,54 +12,54 @@ export default function FormSolicitante({ control, errors }) {
         sx={{ justifyContent: "center", alignItems: "center", }}>
         {/* Fila 1: CUIT y Tipo de Persona */}
         <Grid size={{ xs: 6, md: 6 }}>
-          <Controller name="SOI_CUIT" control={control} render={({ field }) => (
-            <TextField {...field} label="CUIT" fullWidth error={!!errors.SOI_CUIT} helperText={errors.SOI_CUIT?.message} />
+          <Controller name="DSI_CUIT" control={control} render={({ field }) => (
+            <TextField {...field} label="CUIT" fullWidth error={!!errors.DSI_CUIT} helperText={errors.DSI_CUIT?.message} />
           )} />
         </Grid>
         <Grid size={{ xs: 6, md: 6 }}>
-          <FormControl component="fieldset" error={!!errors.SOI_PERSONA} fullWidth>
+          <FormControl component="fieldset" error={!!errors.DSI_PERSONA} fullWidth>
             <FormLabel component="legend">Tipo de Persona</FormLabel>
-            <Controller name="SOI_PERSONA" control={control} render={({ field }) => (
+            <Controller name="DSI_PERSONA" control={control} render={({ field }) => (
               <RadioGroup {...field} row >
                 <FormControlLabel value="F" control={<Radio />} label="Física" />
                 <FormControlLabel value="J" control={<Radio />} label="Jurídica" />
               </RadioGroup>
             )}
             />
-            <Typography variant="caption" color="error"> {errors.SOI_PERSONA?.message} </Typography>
+            <Typography variant="caption" color="error"> {errors.DSI_PERSONA?.message} </Typography>
           </FormControl>
         </Grid>
         {/* Fila 2: Nombre y Apellido */}
         <Grid size={{ xs: 6, md: 6 }}>
-          <Controller name="SOI_NOMBRE" control={control} render={({ field }) => (
+          <Controller name="DSI_NOMBRE" control={control} render={({ field }) => (
             <TextField {...field}
               label="Nombre"
               type='text'
               fullWidth
-              error={!!errors.SOI_NOMBRE}
-              helperText={errors.SOI_NOMBRE?.message} />
+              error={!!errors.DSI_NOMBRE}
+              helperText={errors.DSI_NOMBRE?.message} />
           )}
           />
         </Grid>
         <Grid size={{ xs: 6, md: 6 }}>
-          <Controller name="SOI_APELLIDO" control={control} render={({ field }) => (
+          <Controller name="DSI_APELLIDO" control={control} render={({ field }) => (
             <TextField {...field}
               label="Apellido"
               type='text'
               fullWidth
-              error={!!errors.SOI_APELLIDO}
-              helperText={errors.SOI_APELLIDO?.message} />
+              error={!!errors.DSI_APELLIDO}
+              helperText={errors.DSI_APELLIDO?.message} />
           )} />
         </Grid>
         {/* Fila 3: Email */}
         <Grid size={{ xs: 6, md: 12 }}>
-          <Controller name="SOI_EMAIL" control={control} render={({ field }) => (
+          <Controller name="DSI_EMAIL" control={control} render={({ field }) => (
             <TextField {...field}
               label="Email"
               type="email"
               fullWidth
-              error={!!errors.SOI_EMAIL}
-              helperText={errors.SOI_EMAIL?.message} />
+              error={!!errors.DSI_EMAIL}
+              helperText={errors.DSI_EMAIL?.message} />
           )} />
         </Grid>
       </Grid>

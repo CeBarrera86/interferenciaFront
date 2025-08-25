@@ -1,4 +1,3 @@
-// src/components/Dialogos/SuccessDialog.jsx
 import React from 'react';
 import {
   Box,
@@ -33,8 +32,7 @@ export default function SuccessDialog({ open, onClose, message, id }) {
             </Typography>
           </Box>
           <IconButton edge="end" color="inherit" onClick={onClose} aria-label="close"
-            sx={{ color: theme.palette.success.contrastText }}
-          >
+            sx={{ color: theme.palette.success.contrastText }} >
             <CloseIcon />
           </IconButton>
         </Box>
@@ -50,9 +48,7 @@ export default function SuccessDialog({ open, onClose, message, id }) {
         )}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <Button
-            variant="contained"
-            onClick={onClose}
-            color="success"
+            variant="contained" onClick={onClose} color="success"
             sx={{
               minWidth: '120px',
               boxShadow: `0px 4px 8px ${theme.palette.success.light}`,

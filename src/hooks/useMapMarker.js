@@ -4,7 +4,6 @@ export function useMapMarker(mapRef, initialPosition, isLoaded, onMapClickCallba
   const markerRef = useRef(null);
   const [currentMarker, setCurrentMarker] = useState(initialPosition);
 
-  // Sincroniza la posición inicial con el estado interno
   useEffect(() => {
     if (initialPosition && (initialPosition.lat !== currentMarker.lat || initialPosition.lng !== currentMarker.lng)) {
       setCurrentMarker(initialPosition);
@@ -26,7 +25,6 @@ export function useMapMarker(mapRef, initialPosition, isLoaded, onMapClickCallba
     }
   }, [isLoaded, mapRef, currentMarker]);
 
-  // crear/actualizar el marcador cuando currentMarker o isLoaded cambian
   useEffect(() => {
     createOrUpdateMarker();
   }, [currentMarker, createOrUpdateMarker]);

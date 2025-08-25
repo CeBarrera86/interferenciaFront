@@ -22,56 +22,56 @@ export default function FormUbicacion({
         sx={{ justifyContent: "center", alignItems: "center", }}>
         <Grid size={{ xs: 6, md: 5 }}>
           <Controller
-            name={`${ubicacionName}.SOI_CALLE`}
+            name={`${ubicacionName}.USI_CALLE`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Calle"
                 type='text'
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_CALLE}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_CALLE?.message} />
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_CALLE}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_CALLE?.message} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 2 }}>
           <Controller
-            name={`${ubicacionName}.SOI_ALTURA`}
+            name={`${ubicacionName}.USI_ALTURA`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Altura"
                 type="text"
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_ALTURA}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_ALTURA?.message}
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_ALTURA}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_ALTURA?.message}
                 // Convertir a número antes de que react-hook-form lo guarde
                 onChange={(e) => field.onChange(parseFloat(e.target.value))} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 2 }}>
           <Controller
-            name={`${ubicacionName}.SOI_PISO`}
+            name={`${ubicacionName}.USI_PISO`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Piso"
                 type='text'
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_PISO}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_PISO?.message} />
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_PISO}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_PISO?.message} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 2 }}>
           <Controller
-            name={`${ubicacionName}.SOI_DPTO`}
+            name={`${ubicacionName}.USI_DPTO`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Dpto"
                 type='text'
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_DPTO}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_DPTO?.message} />
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_DPTO}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_DPTO?.message} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -92,35 +92,35 @@ export default function FormUbicacion({
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
           <Controller
-            name={`${ubicacionName}.SOI_ENTRE1`}
+            name={`${ubicacionName}.USI_ENTRE1`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Entre Calle 1"
                 type='text'
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_ENTRE1}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_ENTRE1?.message} />
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_ENTRE1}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_ENTRE1?.message} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
           <Controller
-            name={`${ubicacionName}.SOI_ENTRE2`}
+            name={`${ubicacionName}.USI_ENTRE2`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Entre Calle 2"
                 type='text'
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_ENTRE2}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_ENTRE2?.message} />
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_ENTRE2}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_ENTRE2?.message} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
-          <FormControl component="fieldset" error={!!errors.SOI_UBICACIONES?.[index]?.SOI_VEREDA} fullWidth>
+          <FormControl component="fieldset" error={!!errors.SOI_UBICACIONES?.[index]?.USI_VEREDA} fullWidth>
             <FormLabel component="legend">Vereda</FormLabel>
             <Controller
-              name={`${ubicacionName}.SOI_VEREDA`}
+              name={`${ubicacionName}.USI_VEREDA`}
               control={control}
               render={({ field }) => (
                 <RadioGroup {...field} row>
@@ -128,42 +128,42 @@ export default function FormUbicacion({
                   <FormControlLabel value="I" control={<Radio />} label="Impar" />
                 </RadioGroup>
               )} />
-            <Typography variant="caption" color="error">{errors.SOI_UBICACIONES?.[index]?.SOI_VEREDA?.message}</Typography>
+            <Typography variant="caption" color="error">{errors.SOI_UBICACIONES?.[index]?.USI_VEREDA?.message}</Typography>
           </FormControl>
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
           <Controller
-            name={`${ubicacionName}.SOI_LATITUD`}
+            name={`${ubicacionName}.USI_LATITUD`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Latitud"
                 type="number"
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_LATITUD}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_LATITUD?.message}
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_LATITUD}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_LATITUD?.message}
                 InputProps={{ readOnly: true, }} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
           <Controller
-            name={`${ubicacionName}.SOI_LONGITUD`}
+            name={`${ubicacionName}.USI_LONGITUD`}
             control={control}
             render={({ field }) => (
               <TextField {...field}
                 label="Longitud"
                 type="number"
                 fullWidth
-                error={!!errors.SOI_UBICACIONES?.[index]?.SOI_LONGITUD}
-                helperText={errors.SOI_UBICACIONES?.[index]?.SOI_LONGITUD?.message}
+                error={!!errors.SOI_UBICACIONES?.[index]?.USI_LONGITUD}
+                helperText={errors.SOI_UBICACIONES?.[index]?.USI_LONGITUD?.message}
                 InputProps={{ readOnly: true, }} />
             )} />
         </Grid>
         <Grid size={{ xs: 6, md: 4 }}>
-          <FormControl fullWidth error={!!errors.SOI_UBICACIONES?.[index]?.SOI_LOCALIDAD_ID}>
+          <FormControl fullWidth error={!!errors.SOI_UBICACIONES?.[index]?.USI_LOCALIDAD_ID}>
             <InputLabel id={`localidad-label-${index}`}>Localidad</InputLabel>
             <Controller
-              name={`${ubicacionName}.SOI_LOCALIDAD_ID`}
+              name={`${ubicacionName}.USI_LOCALIDAD_ID`}
               control={control}
               render={({ field }) => (
                 <Select {...field} labelId={`localidad-label-${index}`} label="Localidad">
@@ -172,7 +172,7 @@ export default function FormUbicacion({
                   ))}
                 </Select>
               )} />
-            <Typography variant="caption" color="error">{errors.SOI_UBICACIONES?.[index]?.SOI_LOCALIDAD_ID?.message}</Typography>
+            <Typography variant="caption" color="error">{errors.SOI_UBICACIONES?.[index]?.USI_LOCALIDAD_ID?.message}</Typography>
           </FormControl>
         </Grid>
       </Grid>
