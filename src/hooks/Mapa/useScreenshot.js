@@ -1,16 +1,16 @@
 import { useCallback } from 'react';
 import html2canvas from 'html2canvas';
-import { hideElementsTemporarily, Maps_CONTROL_CLASSES } from '../utils/mapUtils';
+import { hideElementsTemporarily, Maps_CONTROL_CLASSES } from '../../utils/mapUtils';
 
 /**
  * Hook de React para manejar la captura de pantalla de un componente de mapa.
- * * @param {React.MutableRefObject} mapContainerRef - Referencia al contenedor del mapa.
+ * @param {React.MutableRefObject} mapContainerRef - Referencia al contenedor del mapa.
  * @param {React.MutableRefObject} mapRef - Referencia al objeto del mapa de Google.
  * @param {Function} onMapScreenshotCallback - Callback que se ejecuta con los datos de la imagen capturada.
  * @param {boolean} disableCaptureButton - Si el botón de captura debe estar deshabilitado.
  * @param {Array<React.MutableRefObject>} buttonsToHideRefs - Referencias a otros botones para ocultar durante la captura.
  */
-export function useMapScreenshot(mapContainerRef, mapRef, onMapScreenshotCallback, disableCaptureButton, buttonsToHideRefs = []) {
+export function useScreenshot(mapContainerRef, mapRef, onMapScreenshotCallback, disableCaptureButton, buttonsToHideRefs = []) {
 
   const handleCaptureMap = useCallback(async () => {
     if (disableCaptureButton) {

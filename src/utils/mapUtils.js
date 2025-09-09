@@ -7,9 +7,7 @@
  */
 export const hideElementsTemporarily = async (elementsToProcess, callback) => {
   elementsToProcess.forEach(({ element }) => {
-    if (element) {
-      element.style.setProperty('display', 'none', 'important');
-    }
+    if (element) { element.style.setProperty('display', 'none', 'important'); }
   });
 
   await new Promise(resolve => setTimeout(resolve, 50));
@@ -19,9 +17,7 @@ export const hideElementsTemporarily = async (elementsToProcess, callback) => {
   } finally {
     // Restaurar los estilos originales de los elementos
     elementsToProcess.forEach(({ element, originalDisplay }) => {
-      if (element) {
-        element.style.display = originalDisplay;
-      }
+      if (element) { element.style.display = originalDisplay; }
     });
   }
 };
@@ -62,4 +58,22 @@ export const esPuntoEnForma = (punto, forma) => {
     return distancia <= radio;
   }
   return false;
+};
+
+/**
+ * Verifica si un punto está dentro de un polígono definido por un array de coordenadas [{lat, lng}]
+ * @param {{lat: number, lng: number}} punto - Punto a verificar
+ * @param {Array<{lat: number, lng: number}>} path - Array de coordenadas del polígono
+ * @returns {boolean}
+ */
+export const isMarkerInsidePolygon = (punto, path) => {
+  if (!window.google || !window.google.maps || !window.google.maps.geometry) {
+    console.warn("Google Maps geometry no disponible.");
+    return false;
+  }
+
+  const latLng = new window.google.maps.LatLng(punto.lat, punto.lng);
+  const polygon = new window.google.maps.Polygon({ paths: path });
+
+  return window.google.maps.geometry.poly.containsLocation(latLng, polygon);
 };

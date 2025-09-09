@@ -11,12 +11,12 @@ export default function FormSolicitante({ control, errors }) {
       <Grid container direction="row" rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 2 }}
         sx={{ justifyContent: "center", alignItems: "center", }}>
         {/* Fila 1: CUIT y Tipo de Persona */}
-        <Grid size={{ xs: 6, md: 6 }}>
+        <Grid size={{ xs: 4, md: 6 }}>
           <Controller name="DSI_CUIT" control={control} render={({ field }) => (
             <TextField {...field} label="CUIT" fullWidth error={!!errors.DSI_CUIT} helperText={errors.DSI_CUIT?.message} />
           )} />
         </Grid>
-        <Grid size={{ xs: 6, md: 6 }}>
+        <Grid size={{ xs: 8, md: 6 }}>
           <FormControl component="fieldset" error={!!errors.DSI_PERSONA} fullWidth>
             <FormLabel component="legend">Tipo de Persona</FormLabel>
             <Controller name="DSI_PERSONA" control={control} render={({ field }) => (
@@ -52,7 +52,7 @@ export default function FormSolicitante({ control, errors }) {
           )} />
         </Grid>
         {/* Fila 3: Email */}
-        <Grid size={{ xs: 6, md: 12 }}>
+        <Grid size={{ xs: 12, md: 12 }}>
           <Controller name="DSI_EMAIL" control={control} render={({ field }) => (
             <TextField {...field}
               label="Email"

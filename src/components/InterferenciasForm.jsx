@@ -3,12 +3,12 @@ import { Box, Paper, Typography } from '@mui/material';
 import FormEmpresas from './FormInterferencia/FormEmpresas';
 import FormSolicitante from './FormInterferencia/FormSolicitante';
 import FormObra from './FormInterferencia/FormObra';
-import FormUbicacion from './FormInterferencia/FormUbicacion';
-import FormBotones from './FormInterferencia/FormBotones';
-import MapComponent from './MapComponent/MapComponent';
 import FormArchivos from './FormInterferencia/FormArchivos';
-import { useLocalidades } from '../hooks/useLocalidades';
-import { useInterferenciaForm } from '../hooks/useInterferenciaForm';
+import FormBotones from './FormInterferencia/FormBotones';
+import FormUbicacion from './FormInterferencia/FormUbicacion';
+import Map from './MapComponent/Map';
+import { useInterferenciaForm } from '../hooks/Interferencia/useInterferenciaForm';
+import { useLocalidades } from '../hooks/Localidad/useLocalidades';
 import MapPreviewDialog from './Dialogos/MapPreviewDialog';
 import SuccessDialog from './Dialogos/SuccessDialog';
 import ErrorDialog from './Dialogos/ErrorDialog';
@@ -18,9 +18,7 @@ export default function InterferenciasForm() {
   const {
     control,
     handleSubmit,
-    errors,
-    latitudActual,
-    longitudActual,
+    formState: { errors },
     adjuntoMapa,
     adjuntoDocumento,
     datosCapturaMapa,
@@ -28,32 +26,33 @@ export default function InterferenciasForm() {
     manejarCapturaMapa,
     manejarCambioArchivoUbicacion,
     cerrarVistaPreviaMapa,
-    manejarClickMapa,
     limpiarAdjunto,
     onSubmit,
     abrirDialogoExito,
     mensajeExito,
     idInterferencia,
-    resetearFormularioYMapa,
     abrirDialogoError,
     mensajeError,
     detallesError,
     cerrarDialogoError,
-    setFormasDibujadas,
+    resetearFormularioYMapa,
     puedeCapturarMapa,
+    tipoAdjuntoActivo,
     ubicaciones,
     agregarUbicacion,
     eliminarUbicacion,
+    actualizarUbicacionDesdeMapa,
+    pinActivoIndex,
   } = useInterferenciaForm();
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Panel Izquierdo */}
-        <Box sx={{ flex: '1 1 500px' }}>
-          <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6">Registrar Nueva Interferencia</Typography>
-            <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {/* Panel Izquierdo */}
+          <Box sx={{ flex: '1 1 500px' }}>
+            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6">Registrar Nueva Interferencia</Typography>
               <FormEmpresas control={control} errors={errors} />
               <FormSolicitante control={control} errors={errors} />
               <FormObra control={control} errors={errors} />
@@ -66,44 +65,53 @@ export default function InterferenciasForm() {
                 currentAdjunto={adjuntoDocumento}
                 onClearAttachment={limpiarAdjunto}
               />
-              <FormBotones />
-            </form>
-          </Paper>
-        </Box>
-        {/* Panel Derecho */}
-        <Box sx={{ flex: '1 1 500px' }}>
-          <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6">Zona de Interferencia</Typography>
-            <MapComponent
-              center={{ lat: latitudActual, lng: longitudActual }}
-              zoom={13}
-              onMapClick={manejarClickMapa}
-              markerPosition={{ lat: latitudActual, lng: longitudActual }}
-              onMapScreenshot={manejarCapturaMapa}
-              disableCaptureButton={!puedeCapturarMapa}
-              onDrawnShapesChange={setFormasDibujadas}
-            />
-            {ubicaciones.map((ubicacion, index) => (
+            </Paper>
+          </Box>
+
+          {/* Panel Derecho */}
+          <Box sx={{ flex: '1 1 500px' }}>
+            <Paper elevation={3} sx={{ p: 2, height: '100%' }}>
+              <Typography variant="h6">Zona de Interferencia</Typography>
+              <Map
+                zoom={13.8}
+                ubicaciones={ubicaciones}
+                onMapScreenshot={manejarCapturaMapa}
+                disableCaptureButton={!puedeCapturarMapa || tipoAdjuntoActivo === 'file'}
+                actualizarUbicacionDesdeMapa={actualizarUbicacionDesdeMapa}
+                pinActivoIndex={pinActivoIndex}
+              />
               <FormUbicacion
-                key={ubicacion.id}
                 control={control}
                 errors={errors}
                 localidades={localidades}
-                index={index}
-                append={agregarUbicacion}
-                remove={eliminarUbicacion}
-                totalForms={ubicaciones.length}
-                isRemovable={ubicaciones.length > 1}
-                isLast={index === ubicaciones.length - 1}
+                ubicaciones={ubicaciones}
+                onAddUbicacion={agregarUbicacion}
+                onRemoveUbicacion={eliminarUbicacion}
               />
-            ))}
-          </Paper>
+            </Paper>
+          </Box>
         </Box>
-      </Box>
+        <FormBotones />
+      </form>
+
       {/* Diálogos */}
-      <MapPreviewDialog open={abrirVistaPreviaMapa} onClose={cerrarVistaPreviaMapa} mapScreenshotData={datosCapturaMapa} />
-      <SuccessDialog open={abrirDialogoExito} onClose={resetearFormularioYMapa} message={mensajeExito} id={idInterferencia} />
-      <ErrorDialog open={abrirDialogoError} onClose={cerrarDialogoError} message={mensajeError} details={detallesError} />
+      <MapPreviewDialog
+        open={abrirVistaPreviaMapa}
+        onClose={cerrarVistaPreviaMapa}
+        mapScreenshotData={datosCapturaMapa}
+      />
+      <SuccessDialog
+        open={abrirDialogoExito}
+        onClose={resetearFormularioYMapa}
+        message={mensajeExito}
+        id={idInterferencia}
+      />
+      <ErrorDialog
+        open={abrirDialogoError}
+        onClose={cerrarDialogoError}
+        message={mensajeError}
+        details={detallesError}
+      />
     </Box>
   );
 }

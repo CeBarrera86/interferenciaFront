@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
-const corpicoPalette = {
+export const corpicoPalette = {
   azul: '#3e64ac',
   violeta: '#712d85',
   rojo: '#e22b14',
