@@ -20,11 +20,10 @@ export default function FormSolicitante({ control, errors }) {
           <FormControl component="fieldset" error={!!errors.DSI_PERSONA} fullWidth>
             <FormLabel component="legend">Tipo de Persona</FormLabel>
             <Controller name="DSI_PERSONA" control={control} render={({ field }) => (
-              <RadioGroup {...field} row >
+              <RadioGroup row value={field.value} onChange={field.onChange} >
                 <FormControlLabel value="F" control={<Radio />} label="Física" />
                 <FormControlLabel value="J" control={<Radio />} label="Jurídica" />
-              </RadioGroup>
-            )}
+              </RadioGroup>)}
             />
             <Typography variant="caption" color="error"> {errors.DSI_PERSONA?.message} </Typography>
           </FormControl>

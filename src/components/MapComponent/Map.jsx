@@ -2,18 +2,14 @@ import React, { useRef, useCallback, useState, useMemo, useEffect } from 'react'
 import { Box, Grid, Tooltip } from '@mui/material';
 import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
 import MapButton from './MapButton';
-import {
-  Maps_API_KEY,
-  containerStyle,
-  posicionInicial,
-  libraries,
-} from '../../config/mapConstants';
+import { Maps_API_KEY, containerStyle, libraries } from '../../config/mapConstants';
+import { posicionInicial } from '../../config/formConstants';
 import { getMapOptions } from '../../config/mapOptions';
 import { useMarkers } from '../../hooks/Mapa/useMarkers';
 import { useScreenshot } from '../../hooks/Mapa/useScreenshot';
 import { useDrawing } from '../../hooks/Mapa/useDrawing';
 import { MapShapes } from './MapShapes';
-
+import { corpicoColores as colores } from '../../config/mapConstants';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import GestureIcon from '@mui/icons-material/Gesture';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -31,7 +27,6 @@ export default function Map({
 }) {
   const [mapReady, setMapReady] = useState(false);
   const [modoMapa, setModoMapa] = useState('movimiento');
-
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
   const captureButtonRef = useRef(null);
@@ -48,28 +43,13 @@ export default function Map({
 
   const { drawnShape, handleMapClickForDrawing, clearAllShapes, handleShapeChange } = useDrawing();
 
-  const handleMarkerSet = useCallback(
-    (index, lat, lng) => {
-      actualizarUbicacionDesdeMapa(index, lat, lng);
-    },
-    [actualizarUbicacionDesdeMapa]
+  const { moverPinActivo } = useMarkers(
+    mapRef,
+    ubicaciones,
+    isLoaded && mapReady,
+    actualizarUbicacionDesdeMapa,
+    pinActivoIndex
   );
-
-  useMarkers(mapRef, ubicaciones, isLoaded && mapReady, handleMarkerSet, pinActivoIndex);
-
-  useEffect(() => {
-    if (drawnShape?.type === 'polygon') {
-      const newPath = drawnShape.path.length > 0 ? drawnShape.path : [];
-      actualizarUbicacionDesdeMapa(pinActivoIndex, ubicaciones[pinActivoIndex]?.USI_LATITUD, ubicaciones[pinActivoIndex]?.USI_LONGITUD);
-      // Si querés guardar también la forma:
-      // actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng, { tipo: 'polygon', path: newPath });
-    }
-  }, [drawnShape, actualizarUbicacionDesdeMapa, pinActivoIndex, ubicaciones]);
-
-  const mapCenter = useMemo(() => {
-    const first = ubicaciones?.[0];
-    return first ? { lat: first.USI_LATITUD, lng: first.USI_LONGITUD } : posicionInicial;
-  }, [ubicaciones]);
 
   const handleMapClick = useCallback((event) => {
     const lat = event.latLng.lat();
@@ -77,11 +57,23 @@ export default function Map({
 
     if (modoMapa === 'movimiento') {
       mapRef.current?.panTo({ lat, lng });
-      handleMarkerSet(pinActivoIndex, lat, lng);
+      actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng);
+      moverPinActivo(lat, lng);
     } else if (modoMapa === 'dibujo') {
       handleMapClickForDrawing(event);
     }
-  }, [modoMapa, handleMarkerSet, handleMapClickForDrawing, pinActivoIndex]);
+  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo]);
+
+  useEffect(() => {
+    if (drawnShape?.type === 'polygon') {
+      actualizarUbicacionDesdeMapa(pinActivoIndex, ubicaciones[pinActivoIndex]?.USI_LATITUD, ubicaciones[pinActivoIndex]?.USI_LONGITUD);
+    }
+  }, [drawnShape, actualizarUbicacionDesdeMapa, pinActivoIndex, ubicaciones]);
+
+  const mapCenter = useMemo(() => {
+    const first = ubicaciones?.[0];
+    return first ? { lat: first.USI_LATITUD, lng: first.USI_LONGITUD } : posicionInicial;
+  }, [ubicaciones]);
 
   const { handleCaptureMap } = useScreenshot(
     mapContainerRef,
@@ -91,12 +83,7 @@ export default function Map({
     [captureButtonRef, clearButtonRef, drawButtonRef, panButtonRef, deleteCaptureButtonRef]
   );
 
-  const handleShapeEdit = useCallback(
-    (intfId, newShape) => {
-      // Si querés editar formas desde MapShapes
-    },
-    []
-  );
+  const handleShapeEdit = useCallback(() => {}, []);
 
   if (loadError) return <div>Error cargando Google Maps</div>;
   if (!isLoaded) return <div>Cargando Mapa...</div>;
@@ -118,7 +105,7 @@ export default function Map({
               <Polygon
                 paths={drawnShape.path}
                 options={{
-                  fillColor: '#ffff00',
+                  fillColor: colores[2],
                   fillOpacity: 0.2,
                   strokeWeight: 1,
                   editable: true,
@@ -132,13 +119,23 @@ export default function Map({
           {/* Botones */}
           <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 1000, display: 'flex', gap: '10px' }}>
             <Tooltip title="Ubicar Marcador">
-              <MapButton color="primary" onClick={() => setModoMapa('movimiento')} selected={modoMapa === 'movimiento'} ref={panButtonRef}>
+              <MapButton
+                color="primary"
+                onClick={() => setModoMapa('movimiento')}
+                selected={modoMapa === 'movimiento'}
+                ref={panButtonRef}
+              >
                 <LocationOnIcon />
               </MapButton>
             </Tooltip>
 
             <Tooltip title="Dibujar Zona">
-              <MapButton color="primary" onClick={() => setModoMapa('dibujo')} selected={modoMapa === 'dibujo'} ref={drawButtonRef}>
+              <MapButton
+                color="primary"
+                onClick={() => setModoMapa('dibujo')}
+                selected={modoMapa === 'dibujo'}
+                ref={drawButtonRef}
+              >
                 <GestureIcon />
               </MapButton>
             </Tooltip>

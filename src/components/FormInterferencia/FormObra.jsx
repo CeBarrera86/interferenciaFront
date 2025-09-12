@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Typography, Grid, TextField } from '@mui/material';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';
 
 export default function FormObra({ control, errors }) {
+  const fechaInicio = useWatch({ control, name: 'SOI_DESDE' });
   return (
     <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 2, position: 'relative' }}>
       <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
@@ -14,10 +16,11 @@ export default function FormObra({ control, errors }) {
         {/* Fila 1: Fechas */}
         <Grid size={{ xs: 6, md: 6 }}>
           <Controller name="SOI_DESDE" control={control} render={({ field }) => (
-            <DatePicker {...field}
+            <DatePicker
               label="Fecha Inicio"
-              type="date"
-              fullWidth
+              value={field.value ? dayjs(field.value) : null}
+              onChange={(date) => field.onChange(date?.toDate() || null)}
+              disablePast
               format="DD/MM/YYYY"
               slotProps={{
                 textField: {
@@ -25,15 +28,18 @@ export default function FormObra({ control, errors }) {
                   error: !!errors.SOI_DESDE,
                   helperText: errors.SOI_DESDE?.message,
                 },
-              }} />
-          )} />
+              }}
+            />)}
+          />
         </Grid>
+
         <Grid size={{ xs: 6, md: 6 }}>
           <Controller name="SOI_HASTA" control={control} render={({ field }) => (
-            <DatePicker {...field}
+            <DatePicker
               label="Fecha Fin"
-              type="date"
-              fullWidth
+              value={field.value ? dayjs(field.value) : null}
+              onChange={(date) => field.onChange(date?.toDate() || null)}
+              minDate={fechaInicio ? dayjs(fechaInicio) : dayjs()}
               format="DD/MM/YYYY"
               slotProps={{
                 textField: {
@@ -41,9 +47,11 @@ export default function FormObra({ control, errors }) {
                   error: !!errors.SOI_HASTA,
                   helperText: errors.SOI_HASTA?.message,
                 },
-              }} />
-          )} />
+              }}
+            />)}
+          />
         </Grid>
+
         {/* Fila 2: Nombre Proyecto */}
         <Grid size={{ xs: 12 }}>
           <Controller name="SOI_PROYECTO" control={control} render={({ field }) => (

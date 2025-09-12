@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Box, Typography, Grid, TextField, FormControl, InputLabel, Select, MenuItem,
-  FormLabel, RadioGroup, FormControlLabel, Radio, IconButton
+  FormLabel, RadioGroup, FormControlLabel, Radio, IconButton, Tooltip
 } from '@mui/material';
 import { Controller } from 'react-hook-form';
 import AddIcon from '@mui/icons-material/Add';
@@ -12,26 +12,40 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
     <>
       {ubicaciones.map((_, index) => {
         const name = `SOI_UBICACIONES.${index}`;
-        const showRemove = ubicaciones.length > 1;
 
         return (
           <Box key={index} sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2, mt: 2, position: 'relative' }}>
             <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
-              Ubicación {index + 1}
+              {ubicaciones.length === 1 ? 'Ubicación' : `Ubicación ${index + 1}`}
             </Typography>
             <Grid container spacing={2}>
 
               <Grid size={{ xs: 2, md: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <IconButton onClick={onAddUbicacion} sx={{ ml: 1 }}>
-                    <AddIcon />
-                  </IconButton>
-                  {showRemove && (
-                    <IconButton onClick={() => onRemoveUbicacion(index)} sx={{ ml: 1 }}>
-                      <RemoveIcon />
-                    </IconButton>
-                  )}
-                </Box>
+                {(ubicaciones.length === 1 || index === ubicaciones.length - 1) && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: ubicaciones.length === 1 ? 'row' : 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '100%',
+                      gap: 1,
+                    }}
+                  >
+                    <Tooltip title="Agregar Ubicación">
+                      <IconButton onClick={onAddUbicacion} size="small" sx={{ p: 0.5 }}>
+                        <AddIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Tooltip>
+                    {ubicaciones.length > 1 && (
+                      <Tooltip title="Eliminar Ubicación">
+                        <IconButton onClick={() => onRemoveUbicacion(index)} size="small" sx={{ p: 0.5 }}>
+                          <RemoveIcon sx={{ fontSize: 16 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+                )}
               </Grid>
 
               <Grid size={{ xs: 10, md: 5 }}>
