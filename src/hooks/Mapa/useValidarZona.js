@@ -16,14 +16,12 @@ export function useValidarZona(ubicaciones, drawnShape) {
     const hayPoligono = drawnShape?.type === 'polygon';
 
     if (!hayPines) {
-      console.log('❌ No hay pines para validar');
       setPuedeCapturar(false);
       setPinesInvalidos([]);
       return;
     }
 
     if (!hayPoligono || !drawnShape.path || drawnShape.path.length < 3) {
-      console.log('⚠️ Polígono inválido o incompleto');
       setPuedeCapturar(true);
       setPinesInvalidos([]);
       return;
@@ -35,9 +33,6 @@ export function useValidarZona(ubicaciones, drawnShape) {
 
     const resultado = invalidos.length === 0;
 
-    console.log('✅ puedeCapturar:', resultado);
-    console.log('📌 Pines inválidos:', invalidos);
-    
     setPuedeCapturar(resultado);
     setPinesInvalidos(invalidos);
   }, [ubicaciones, drawnShape]);

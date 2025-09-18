@@ -54,12 +54,7 @@ export default function FormArchivos({
         }
 
         if (fileSize > maxFileSizeMB) {
-          console.error(
-            'Archivo demasiado grande:',
-            file.name,
-            fileSize.toFixed(2),
-            'MB'
-          );
+          console.error('Archivo demasiado grande:', file.name, fileSize.toFixed(2), 'MB');
           continue;
         }
 
@@ -72,11 +67,7 @@ export default function FormArchivos({
       );
 
       if (totalSizeMB + newFilesSizeMB > maxTotalSizeMB) {
-        console.error(
-          'Excede el límite total de archivos:',
-          (totalSizeMB + newFilesSizeMB).toFixed(2),
-          'MB'
-        );
+        console.error('Excede el límite total de archivos:', (totalSizeMB + newFilesSizeMB).toFixed(2), 'MB');
         return;
       }
 

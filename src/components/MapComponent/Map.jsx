@@ -60,10 +60,7 @@ export default function Map({
   const { handleCaptureMap } = useScreenshot(
     mapContainerRef,
     mapRef,
-    (img) => {
-      console.log('📸 Captura de mapa generada');
-      onMapScreenshot(img);
-    },
+    (img) => {onMapScreenshot(img);},
     false,
     [captureButtonRef, clearButtonRef, drawButtonRef, panButtonRef, deleteCaptureButtonRef]
   );
@@ -73,15 +70,12 @@ export default function Map({
   const handleMapClick = useCallback((event) => {
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
-    console.log(`🖱️ Click en el mapa: (${lat}, ${lng})`);
 
     if (modoMapa === 'movimiento') {
-      console.log('📍 Modo movimiento: actualizando ubicación del pin activo');
       mapRef.current?.panTo({ lat, lng });
       actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng); // Directly call the prop
       moverPinActivo(lat, lng);
     } else if (modoMapa === 'dibujo') {
-      console.log('✏️ Modo dibujo: agregando punto al polígono');
       handleMapClickForDrawing(event);
     }
   }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo]);
@@ -95,7 +89,6 @@ export default function Map({
           lng: latLng.lng(),
         }));
         setDrawnShape({ type: 'polygon', path: newPath });
-        console.log('✏️ Polígono editado. Nuevo path:', newPath);
       }
     }
   }, [setDrawnShape]);
@@ -111,11 +104,7 @@ export default function Map({
             mapContainerStyle={containerStyle}
             center={mapCenter}
             zoom={zoom || 13}
-            onLoad={(map) => {
-              console.log('🗺️ Mapa cargado');
-              mapRef.current = map;
-              setMapReady(true);
-            }}
+            onLoad={(map) => { mapRef.current = map; setMapReady(true); }}
             onUnmount={() => { mapRef.current = null; setMapReady(false); }}
             onClick={handleMapClick}
             options={{ ...getMapOptions(), disableDoubleClickZoom: true }}
@@ -131,10 +120,7 @@ export default function Map({
                   clickable: false,
                   zIndex: 1,
                 }}
-                onLoad={(polygon) => {
-                  polygonRef.current = polygon;
-                  console.log('🔺 Polígono cargado y editable. Referencia guardada.');
-                }}
+                onLoad={(polygon) => { polygonRef.current = polygon; }}
                 onMouseUp={onPolygonEdit}
               />
             )}

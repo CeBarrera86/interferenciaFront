@@ -15,8 +15,13 @@ export function useInterferenciaForm() {
   const actualizarUbicacionDesdeMapa = (index, lat, lng) => {
     setValue(`SOI_UBICACIONES.${index}.USI_LATITUD`, lat);
     setValue(`SOI_UBICACIONES.${index}.USI_LONGITUD`, lng);
+    // Forzar reactividad: clonar el array completo
+    const ubicacionesActualizadas = getValues('SOI_UBICACIONES').map((ubi) => ({ ...ubi }));
+    setValue('SOI_UBICACIONES', ubicacionesActualizadas);
+
     setPinActivoIndex(index);
   };
+
   const agregarUbicacion = () => { append({ ...ubicacionBase }); setPinActivoIndex(ubicaciones.length); };
   const eliminarUbicacion = (index) => { remove(index); setPinActivoIndex(index > 0 ? index - 1 : 0); };
   const archivos = useArchivos(form, (newUbicaciones) => {
