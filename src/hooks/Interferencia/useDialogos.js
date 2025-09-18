@@ -1,38 +1,57 @@
-import { useState, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
 
 export function useDialogos(form) {
   const { reset } = form;
 
-  const [abrirDialogoExito, setAbrirDialogoExito] = useState(false);
-  const [abrirDialogoError, setAbrirDialogoError] = useState(false);
-  const [mensajeExito, setMensajeExito] = useState('');
-  const [mensajeError, setMensajeError] = useState('');
-  const [detallesError, setDetallesError] = useState('');
-  const [idInterferencia, setIdInterferencia] = useState(null);
+  const initialState = {
+    abrirDialogoExito: false,
+    abrirDialogoError: false,
+    mensajeExito: '',
+    mensajeError: '',
+    detallesError: '',
+    idInterferencia: null,
+  };
 
-  const cerrarDialogoError = () => setAbrirDialogoError(false);
+  function reducer(state, action) {
+    switch (action.type) {
+      case 'EXITO':
+        return {
+          ...state,
+          abrirDialogoExito: true,
+          mensajeExito: action.payload.message,
+          idInterferencia: action.payload.id,
+        };
+      case 'ERROR':
+        return {
+          ...state,
+          abrirDialogoError: true,
+          mensajeError: action.payload.message,
+          detallesError: action.payload.details,
+        };
+      case 'CERRAR_ERROR':
+        return { ...state, abrirDialogoError: false };
+      case 'RESET':
+        return initialState;
+      default:
+        return state;
+    }
+  }
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  const cerrarDialogoError = () => dispatch({ type: 'CERRAR_ERROR' });
 
   const resetearFormularioYMapa = useCallback((limpiarAdjunto, setFormasDibujadas) => {
     reset();
-    setAbrirDialogoExito(false);
+    dispatch({ type: 'RESET' });
     setFormasDibujadas([]);
     limpiarAdjunto();
   }, [reset]);
 
   return {
-    abrirDialogoExito,
-    mensajeExito,
-    idInterferencia,
-    abrirDialogoError,
-    mensajeError,
-    detallesError,
+    ...state,
+    dispatch,
     cerrarDialogoError,
-    setAbrirDialogoExito,
-    setMensajeExito,
-    setIdInterferencia,
-    setAbrirDialogoError,
-    setMensajeError,
-    setDetallesError,
     resetearFormularioYMapa,
   };
 }

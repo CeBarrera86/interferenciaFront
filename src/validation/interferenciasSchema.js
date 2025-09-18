@@ -30,10 +30,15 @@ export const interferenciasSchema = yup.object().shape({
       function (hasta) { const desde = this.parent.SOI_DESDE; return !desde || !hasta || hasta > desde; }),
   SOI_UBICACIONES: yup.array().of(ubicacionSchema).min(1).required(),
   SOI_EMPRESA: yup.array().min(1).required(),
-  SOI_DOCUMENTOS: yup.array().of(yup.mixed()).notRequired(),
+  SOI_DOCUMENTOS: yup.array().of(yup.mixed()).notRequired().test(
+    'at-least-one-adjunto',
+    'Debe adjuntar un archivo o una captura de mapa',
+    function (documentos) {
+      const mapa = this.parent.SOI_MAPA;
+      const hayArchivos = Array.isArray(documentos) && documentos.length > 0;
+      const hayMapa = !!mapa;
+      return hayArchivos || hayMapa;
+    }
+  ),
   SOI_MAPA: yup.mixed().nullable().notRequired(),
-
-  // Al menos uno de los se adjunta.
-  adjuntos: yup.mixed().test('at-least-one-adjunto', 'Debe adjuntar un archivo o una captura de mapa',
-    function (value) { const { SOI_DOCUMENTO, SOI_MAPA } = this.parent; return !!SOI_DOCUMENTO || !!SOI_MAPA; }),
 });

@@ -1,31 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
+
+const initialState = {
+  localidades: [],
+  loading: true,
+  error: null,
+};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'SUCCESS':
+      return { localidades: action.payload, loading: false, error: null };
+    case 'ERROR':
+      return { localidades: [], loading: false, error: action.payload };
+    default:
+      return state;
+  }
+}
 
 export function useLocalidades() {
-  const [localidades, setLocalidades] = useState([]);
-  const [loadingLocalidades, setLoadingLocalidades] = useState(true);
-  const [errorLocalidades, setErrorLocalidades] = useState(null);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     const fetchLocalidades = async () => {
       try {
-        setLoadingLocalidades(true);
         const response = await fetch('http://localhost:3000/api/localidades');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
         const data = await response.json();
-        const formattedLocalidades = data.map(loc => ({ id: loc.LOC_ID, nombre: loc.LOC_DESCRIPCION }));
-        setLocalidades(formattedLocalidades);
+        const formatted = data.map(loc => ({
+          id: loc.LOC_ID,
+          nombre: loc.LOC_DESCRIPCION,
+        }));
+
+        dispatch({ type: 'SUCCESS', payload: formatted });
       } catch (error) {
-        console.error("Error fetching localidades:", error);
-        setErrorLocalidades(error);
-        setLocalidades([]);
-      } finally {
-        setLoadingLocalidades(false);
+        console.error('Error fetching localidades:', error);
+        dispatch({ type: 'ERROR', payload: error });
       }
     };
+
     fetchLocalidades();
   }, []);
 
-  return { localidades, loadingLocalidades, errorLocalidades };
+  return {
+    localidades: state.localidades,
+    loadingLocalidades: state.loading,
+    errorLocalidades: state.error,
+  };
 }

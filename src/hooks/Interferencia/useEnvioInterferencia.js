@@ -1,26 +1,40 @@
 export function useEnvioInterferencia(form, dialogos) {
-  const { setAbrirDialogoError, setMensajeError, setDetallesError, setAbrirDialogoExito, setMensajeExito, setIdInterferencia } = dialogos;
+  const {
+    setAbrirDialogoError,
+    setMensajeError,
+    setDetallesError,
+    setAbrirDialogoExito,
+    setMensajeExito,
+    setIdInterferencia,
+  } = dialogos;
+
+  const formatearFecha = (fecha) => {
+    const d = new Date(fecha);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  const serializarUbicaciones = (ubicaciones) => {
+    return ubicaciones.flatMap((ubi, index) =>
+      Object.entries(ubi).map(([key, value]) => [`SOI_UBICACIONES[${index}][${key}]`, value])
+    );
+  };
 
   const enviarFormulario = async (data) => {
     const formData = new FormData();
 
     for (const key in data) {
+      const value = data[key];
+
       if (key === 'SOI_UBICACIONES') {
-        data[key].forEach((ubicacion, index) => {
-          for (const ubiKey in ubicacion) {
-            formData.append(`SOI_UBICACIONES[${index}][${ubiKey}]`, ubicacion[ubiKey]);
-          }
-        });
-      } else if (data[key] instanceof File) {
-        formData.append(key, data[key], data[key].name);
+        serializarUbicaciones(value).forEach(([k, v]) => formData.append(k, v));
+      } else if (value instanceof File) {
+        formData.append(key, value, value.name);
       } else if (key === 'SOI_EMPRESA') {
-        formData.append(key, data[key].join(','));
+        formData.append(key, value.join(','));
       } else if (key === 'SOI_DESDE' || key === 'SOI_HASTA') {
-        const date = new Date(data[key]);
-        const formatted = `${date.getFullYear()}-${('0'+(date.getMonth()+1)).slice(-2)}-${('0'+date.getDate()).slice(-2)}`;
-        formData.append(key, formatted);
+        formData.append(key, formatearFecha(value));
       } else {
-        formData.append(key, data[key]);
+        formData.append(key, value);
       }
     }
 
@@ -30,15 +44,15 @@ export function useEnvioInterferencia(form, dialogos) {
         body: formData,
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        setMensajeError(errorData.message || 'Error desconocido.');
-        setDetallesError(errorData.error || (errorData.errors?.map(e => e.msg).join(', ')) || '');
+        setMensajeError(result.message || 'Error desconocido.');
+        setDetallesError(result.error || result.errors?.map(e => e.msg).join(', ') || '');
         setAbrirDialogoError(true);
         return false;
       }
 
-      const result = await response.json();
       setMensajeExito(result.message);
       setIdInterferencia(result.id);
       setAbrirDialogoExito(true);

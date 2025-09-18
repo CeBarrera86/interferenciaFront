@@ -1,21 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import { CssBaseline, Box } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import localeData from 'dayjs/plugin/localeData';
 dayjs.extend(localeData);
-import appTheme from './styles/theme';
+dayjs.locale('es');
+
+import corpicoTheme from './styles/theme';
 import Header from './components/Layouts/Header';
-import InterferenciasForm from './components/InterferenciasForm';
 import Footer from './components/Layouts/Footer';
+import InterferenciasForm from './components/InterferenciasForm';
 
 function App() {
-  dayjs.locale('es');
-  const theme = appTheme('light'); // O 'dark'
+  const theme = useMemo(() => corpicoTheme('light'), []); // Cambiar a 'dark' si querés probar
 
   return (
     <ThemeProvider theme={theme}>

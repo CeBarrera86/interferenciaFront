@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useMemo, useEffect } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from 'react';
 import { Box, Grid, Tooltip } from '@mui/material';
 import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
 import MapButton from './MapButton';
@@ -15,6 +15,7 @@ import GestureIcon from '@mui/icons-material/Gesture';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
+import { useValidarZona } from '../../hooks/Mapa/useValidarZona';
 
 const allLibraries = [...libraries, 'geometry', 'marker'];
 
@@ -24,6 +25,7 @@ export default function Map({
   actualizarUbicacionDesdeMapa,
   onMapScreenshot,
   pinActivoIndex,
+  tipoAdjuntoActivo,
 }) {
   const [mapReady, setMapReady] = useState(false);
   const [modoMapa, setModoMapa] = useState('movimiento');
@@ -34,41 +36,21 @@ export default function Map({
   const drawButtonRef = useRef(null);
   const panButtonRef = useRef(null);
   const deleteCaptureButtonRef = useRef(null);
+  const polygonRef = useRef(null);
+  const { drawnShape, setDrawnShape, handleMapClickForDrawing, clearAllShapes } = useDrawing();
+  const { moverPinActivo } = useMarkers(
+    mapRef,
+    ubicaciones,
+    mapReady,
+    actualizarUbicacionDesdeMapa,
+    pinActivoIndex
+  );
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: Maps_API_KEY,
     libraries: allLibraries,
   });
-
-  const { drawnShape, handleMapClickForDrawing, clearAllShapes, handleShapeChange } = useDrawing();
-
-  const { moverPinActivo } = useMarkers(
-    mapRef,
-    ubicaciones,
-    isLoaded && mapReady,
-    actualizarUbicacionDesdeMapa,
-    pinActivoIndex
-  );
-
-  const handleMapClick = useCallback((event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
-
-    if (modoMapa === 'movimiento') {
-      mapRef.current?.panTo({ lat, lng });
-      actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng);
-      moverPinActivo(lat, lng);
-    } else if (modoMapa === 'dibujo') {
-      handleMapClickForDrawing(event);
-    }
-  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo]);
-
-  useEffect(() => {
-    if (drawnShape?.type === 'polygon') {
-      actualizarUbicacionDesdeMapa(pinActivoIndex, ubicaciones[pinActivoIndex]?.USI_LATITUD, ubicaciones[pinActivoIndex]?.USI_LONGITUD);
-    }
-  }, [drawnShape, actualizarUbicacionDesdeMapa, pinActivoIndex, ubicaciones]);
 
   const mapCenter = useMemo(() => {
     const first = ubicaciones?.[0];
@@ -78,12 +60,45 @@ export default function Map({
   const { handleCaptureMap } = useScreenshot(
     mapContainerRef,
     mapRef,
-    onMapScreenshot,
+    (img) => {
+      console.log('📸 Captura de mapa generada');
+      onMapScreenshot(img);
+    },
     false,
     [captureButtonRef, clearButtonRef, drawButtonRef, panButtonRef, deleteCaptureButtonRef]
   );
 
-  const handleShapeEdit = useCallback(() => {}, []);
+  const { puedeCapturar, pinesInvalidos } = useValidarZona( ubicaciones, drawnShape );
+
+  const handleMapClick = useCallback((event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    console.log(`🖱️ Click en el mapa: (${lat}, ${lng})`);
+
+    if (modoMapa === 'movimiento') {
+      console.log('📍 Modo movimiento: actualizando ubicación del pin activo');
+      mapRef.current?.panTo({ lat, lng });
+      actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng); // Directly call the prop
+      moverPinActivo(lat, lng);
+    } else if (modoMapa === 'dibujo') {
+      console.log('✏️ Modo dibujo: agregando punto al polígono');
+      handleMapClickForDrawing(event);
+    }
+  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo]);
+
+  const onPolygonEdit = useCallback(() => {
+    if (polygonRef.current) {
+      const path = polygonRef.current.getPath();
+      if (path && typeof path.getArray === 'function') {
+        const newPath = path.getArray().map((latLng) => ({
+          lat: latLng.lat(),
+          lng: latLng.lng(),
+        }));
+        setDrawnShape({ type: 'polygon', path: newPath });
+        console.log('✏️ Polígono editado. Nuevo path:', newPath);
+      }
+    }
+  }, [setDrawnShape]);
 
   if (loadError) return <div>Error cargando Google Maps</div>;
   if (!isLoaded) return <div>Cargando Mapa...</div>;
@@ -96,7 +111,11 @@ export default function Map({
             mapContainerStyle={containerStyle}
             center={mapCenter}
             zoom={zoom || 13}
-            onLoad={(map) => { mapRef.current = map; setMapReady(true); }}
+            onLoad={(map) => {
+              console.log('🗺️ Mapa cargado');
+              mapRef.current = map;
+              setMapReady(true);
+            }}
             onUnmount={() => { mapRef.current = null; setMapReady(false); }}
             onClick={handleMapClick}
             options={{ ...getMapOptions(), disableDoubleClickZoom: true }}
@@ -109,54 +128,45 @@ export default function Map({
                   fillOpacity: 0.2,
                   strokeWeight: 1,
                   editable: true,
+                  clickable: false,
+                  zIndex: 1,
                 }}
-                onMouseUp={handleShapeChange}
+                onLoad={(polygon) => {
+                  polygonRef.current = polygon;
+                  console.log('🔺 Polígono cargado y editable. Referencia guardada.');
+                }}
+                onMouseUp={onPolygonEdit}
               />
             )}
-            <MapShapes ubicaciones={ubicaciones} onShapeEdit={handleShapeEdit} />
+            <MapShapes ubicaciones={ubicaciones} onShapeEdit={() => {}} />
           </GoogleMap>
 
           {/* Botones */}
           <div style={{ position: 'absolute', bottom: 16, left: 16, zIndex: 1000, display: 'flex', gap: '10px' }}>
             <Tooltip title="Ubicar Marcador">
-              <MapButton
-                color="primary"
-                onClick={() => setModoMapa('movimiento')}
-                selected={modoMapa === 'movimiento'}
-                ref={panButtonRef}
-              >
+              <MapButton color="primary" onClick={() => setModoMapa('movimiento')} selected={modoMapa === 'movimiento'} ref={panButtonRef}>
                 <LocationOnIcon />
               </MapButton>
             </Tooltip>
 
             <Tooltip title="Dibujar Zona">
-              <MapButton
-                color="primary"
-                onClick={() => setModoMapa('dibujo')}
-                selected={modoMapa === 'dibujo'}
-                ref={drawButtonRef}
-              >
+              <MapButton color="primary" onClick={() => setModoMapa('dibujo')} selected={modoMapa === 'dibujo'} ref={drawButtonRef}>
                 <GestureIcon />
               </MapButton>
             </Tooltip>
 
             <Tooltip title="Eliminar Zona">
-              <MapButton
-                color="primary"
-                onClick={() => {
-                  clearAllShapes();
-                  actualizarUbicacionDesdeMapa(pinActivoIndex, ubicaciones[pinActivoIndex]?.USI_LATITUD, ubicaciones[pinActivoIndex]?.USI_LONGITUD);
-                }}
-                ref={clearButtonRef}
-              >
+              <MapButton color="primary" onClick={() => { clearAllShapes(); }} ref={clearButtonRef} >
                 <DeleteIcon />
               </MapButton>
             </Tooltip>
 
-            <Tooltip title="Capturar Mapa">
-              <MapButton color="primary" ref={captureButtonRef} onClick={handleCaptureMap}>
-                <CameraAltIcon />
-              </MapButton>
+            <Tooltip title={!puedeCapturar ? 'Los pines deben estar dentro del área dibujada' : 'Capturar Mapa'}>
+              <span>
+                <MapButton color="primary" ref={captureButtonRef} onClick={handleCaptureMap} disabled={!puedeCapturar || tipoAdjuntoActivo === 'file'} >
+                  <CameraAltIcon />
+                </MapButton>
+              </span>
             </Tooltip>
 
             <Tooltip title="Eliminar Captura de Mapa">

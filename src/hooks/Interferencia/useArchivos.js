@@ -5,14 +5,17 @@ export function useArchivos(form, formasDibujadas) {
   const [abrirVistaPreviaMapa, setAbrirVistaPreviaMapa] = useState(false);
   const [datosCapturaMapa, setDatosCapturaMapa] = useState(null);
 
+  const convertirDataUrlEnArchivo = async (dataUrl) => {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    return new File([blob], `mapa_${Date.now()}.png`, { type: 'image/png' });
+  };
+
   const manejarCapturaMapa = useCallback(async (imageDataUrl) => {
     setDatosCapturaMapa(imageDataUrl);
     setAbrirVistaPreviaMapa(true);
 
-    const res = await fetch(imageDataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], `mapa_${Date.now()}.png`, { type: 'image/png' });
-
+    const file = await convertirDataUrlEnArchivo(imageDataUrl);
     setValue('SOI_MAPA', file, { shouldDirty: true });
   }, [setValue]);
 
@@ -27,6 +30,11 @@ export function useArchivos(form, formasDibujadas) {
     formasDibujadas.length = 0;
   }, [setValue, formasDibujadas]);
 
+  const limpiarCapturaMapa = useCallback(() => {
+    setValue('SOI_MAPA', null);
+    setDatosCapturaMapa(null);
+  }, [setValue]);
+
   const cerrarVistaPreviaMapa = () => setAbrirVistaPreviaMapa(false);
 
   return {
@@ -36,5 +44,6 @@ export function useArchivos(form, formasDibujadas) {
     cerrarVistaPreviaMapa,
     abrirVistaPreviaMapa,
     datosCapturaMapa,
+    limpiarCapturaMapa,
   };
 }

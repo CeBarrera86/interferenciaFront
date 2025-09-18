@@ -68,7 +68,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                     <TextField {...field} label="Altura" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_ALTURA}
                       helperText={errors?.SOI_UBICACIONES?.[index]?.USI_ALTURA?.message}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))} />
+                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    />
                   )}
                 />
               </Grid>
@@ -80,7 +81,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                   render={({ field }) => (
                     <TextField {...field} label="Piso" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_PISO}
-                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_PISO?.message} />
+                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_PISO?.message}
+                    />
                   )}
                 />
               </Grid>
@@ -92,7 +94,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                   render={({ field }) => (
                     <TextField {...field} label="Dpto" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_DPTO}
-                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_DPTO?.message} />
+                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_DPTO?.message}
+                    />
                   )}
                 />
               </Grid>
@@ -104,7 +107,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                   render={({ field }) => (
                     <TextField {...field} label="Entre Calle 1" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE1}
-                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE1?.message} />
+                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE1?.message}
+                    />
                   )}
                 />
               </Grid>
@@ -116,7 +120,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                   render={({ field }) => (
                     <TextField {...field} label="Entre Calle 2" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE2}
-                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE2?.message} />
+                      helperText={errors?.SOI_UBICACIONES?.[index]?.USI_ENTRE2?.message}
+                    />
                   )}
                 />
               </Grid>
@@ -148,7 +153,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                     <TextField {...field} label="Latitud" type="number" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_LATITUD}
                       helperText={errors?.SOI_UBICACIONES?.[index]?.USI_LATITUD?.message}
-                      InputProps={{ readOnly: true }} />
+                      InputProps={{ readOnly: true }}
+                    />
                   )}
                 />
               </Grid>
@@ -161,7 +167,8 @@ export default function FormUbicacion({ control, errors, localidades, ubicacione
                     <TextField {...field} label="Longitud" type="number" fullWidth
                       error={!!errors?.SOI_UBICACIONES?.[index]?.USI_LONGITUD}
                       helperText={errors?.SOI_UBICACIONES?.[index]?.USI_LONGITUD?.message}
-                      InputProps={{ readOnly: true }} />
+                      InputProps={{ readOnly: true }}
+                    />
                   )}
                 />
               </Grid>

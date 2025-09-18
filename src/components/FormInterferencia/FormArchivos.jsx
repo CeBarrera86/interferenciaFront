@@ -121,10 +121,11 @@ export default function FormArchivos({
       <Typography variant="subtitle1" sx={{ position: 'absolute', top: -12, left: 12, bgcolor: 'background.paper', px: 1 }}>
         Documentos
       </Typography>
-      <Grid container spacing={2}>
+      <Grid container spacing={1}>
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Archivos permitidos (PDF, JPG, PNG, DOCX, XLSX - Máx. 20MB total)
         </Typography>
+
         <Grid size={{ xs: 3, md: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 1, }}>
             <Tooltip title={isLimitReached ? 'Límite de carga alcanzado (20MB)' : 'Seleccionar archivos'}>
@@ -151,6 +152,18 @@ export default function FormArchivos({
         </Grid>
 
         <Grid size={{ xs: 9, md: 8 }}>
+          <Typography variant="body2">
+            Espacio usado: {totalSizeMB.toFixed(2)} MB / {maxTotalSizeMB} MB
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={(totalSizeMB / maxTotalSizeMB) * 100}
+            color={getProgressColor()}
+            sx={{ height: 8, borderRadius: 4, mt: 1 }}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 12 }}>
           {fileAdjuntos.length > 0 && (
             <Box sx={{ mt: 2 }}>
               {fileAdjuntos.map((file, index) => (
@@ -178,19 +191,8 @@ export default function FormArchivos({
             </Box>
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 12 }}>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              Espacio usado: {totalSizeMB.toFixed(2)} MB / {maxTotalSizeMB} MB
-            </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={(totalSizeMB / maxTotalSizeMB) * 100}
-              color={getProgressColor()}
-              sx={{ height: 8, borderRadius: 4, mt: 1 }}
-            />
-          </Box>
-        </Grid>
+
+
         {errors?.SOI_DOCUMENTOS && (
           <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
             {errors.SOI_DOCUMENTOS.message}
