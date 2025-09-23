@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
-export function useArchivos(form, formasDibujadas) {
-  const { setValue } = form;
+export function useArchivos(form) {
+  const { setValue, getValues } = form;
   const [abrirVistaPreviaMapa, setAbrirVistaPreviaMapa] = useState(false);
   const [datosCapturaMapa, setDatosCapturaMapa] = useState(null);
 
@@ -19,16 +19,17 @@ export function useArchivos(form, formasDibujadas) {
     setValue('SOI_MAPA', file, { shouldDirty: true });
   }, [setValue]);
 
-  const manejarCambioArchivoUbicacion = useCallback((file) => {
-    setValue('SOI_DOCUMENTO', file, { shouldDirty: true });
-  }, [setValue]);
+  const manejarCambioArchivoUbicacion = useCallback((files) => {
+    const archivosActuales = getValues('SOI_DOCUMENTO') || [];
+    const nuevosArchivos = [...archivosActuales, ...files];
+    setValue('SOI_DOCUMENTO', nuevosArchivos, { shouldDirty: true });
+  }, [getValues, setValue]);
 
   const limpiarAdjunto = useCallback(() => {
-    setValue('SOI_DOCUMENTO', null);
+    setValue('SOI_DOCUMENTO', [], { shouldDirty: true });
     setValue('SOI_MAPA', null);
     setDatosCapturaMapa(null);
-    formasDibujadas.length = 0;
-  }, [setValue, formasDibujadas]);
+  }, [setValue]);
 
   const limpiarCapturaMapa = useCallback(() => {
     setValue('SOI_MAPA', null);

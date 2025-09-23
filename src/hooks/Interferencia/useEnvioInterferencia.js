@@ -1,12 +1,5 @@
 export function useEnvioInterferencia(form, dialogos) {
-  const {
-    setAbrirDialogoError,
-    setMensajeError,
-    setDetallesError,
-    setAbrirDialogoExito,
-    setMensajeExito,
-    setIdInterferencia,
-  } = dialogos;
+  const { dispatch } = dialogos;
 
   const formatearFecha = (fecha) => {
     const d = new Date(fecha);
@@ -22,45 +15,80 @@ export function useEnvioInterferencia(form, dialogos) {
   const enviarFormulario = async (data) => {
     const formData = new FormData();
 
+    console.log('📝 Datos del formulario antes de serializar:', data);
+
     for (const key in data) {
       const value = data[key];
 
       if (key === 'SOI_UBICACIONES') {
-        serializarUbicaciones(value).forEach(([k, v]) => formData.append(k, v));
+        const ubicacionesSerializadas = serializarUbicaciones(value);
+        console.log('📦 Ubicaciones serializadas:', ubicacionesSerializadas);
+        ubicacionesSerializadas.forEach(([k, v]) => formData.append(k, v));
+      } else if (key === 'SOI_DOCUMENTO' && Array.isArray(value)) {
+        console.log('📎 Archivos adjuntos:', value);
+        value.forEach((file, i) => {
+          if (file instanceof File) {
+            formData.append(`SOI_DOCUMENTO[${i}]`, file, file.name);
+          }
+        });
       } else if (value instanceof File) {
+        console.log(`📎 Archivo único: ${key}`, value);
         formData.append(key, value, value.name);
       } else if (key === 'SOI_EMPRESA') {
+        console.log('🏢 Empresa:', value);
         formData.append(key, value.join(','));
       } else if (key === 'SOI_DESDE' || key === 'SOI_HASTA') {
-        formData.append(key, formatearFecha(value));
+        const fechaFormateada = formatearFecha(value);
+        console.log(`📅 Fecha ${key}:`, fechaFormateada);
+        formData.append(key, fechaFormateada);
       } else {
+        console.log(`🔑 Campo ${key}:`, value);
         formData.append(key, value);
       }
     }
 
+    console.log('📤 Enviando FormData al backend...');
+
     try {
-      const response = await fetch('http://localhost:3000/api/interferencia/store', {
+      const response = await fetch(`${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}/api/interferencia/store`, {
         method: 'POST',
         body: formData,
       });
-
+      // const response = await fetch(`${import.meta.env.VITE_URL_BASE_SSL}:${import.meta.env.VITE_PORT_SSL}/api/interferencia/store`, {
+      //   method: 'POST',
+      //   body: formData,
+      // });
       const result = await response.json();
+      console.log('📥 Respuesta del backend:', result);
 
       if (!response.ok) {
-        setMensajeError(result.message || 'Error desconocido.');
-        setDetallesError(result.error || result.errors?.map(e => e.msg).join(', ') || '');
-        setAbrirDialogoError(true);
+        dispatch({
+          type: 'ERROR',
+          payload: {
+            message: result.message || 'Error desconocido.',
+            details: result.error || result.errors?.map(e => e.msg).join(', ') || '',
+          },
+        });
         return false;
       }
 
-      setMensajeExito(result.message);
-      setIdInterferencia(result.id);
-      setAbrirDialogoExito(true);
+      dispatch({
+        type: 'EXITO',
+        payload: {
+          message: result.message,
+          id: result.id,
+        },
+      });
       return true;
     } catch (error) {
-      setMensajeError('Error de conexión.');
-      setDetallesError(error.message);
-      setAbrirDialogoError(true);
+      console.error('❌ Error de conexión:', error);
+      dispatch({
+        type: 'ERROR',
+        payload: {
+          message: 'Error de conexión.',
+          details: error.message,
+        },
+      });
       return false;
     }
   };

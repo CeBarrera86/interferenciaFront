@@ -30,7 +30,7 @@ export const interferenciasSchema = yup.object().shape({
       function (hasta) { const desde = this.parent.SOI_DESDE; return !desde || !hasta || hasta > desde; }),
   SOI_UBICACIONES: yup.array().of(ubicacionSchema).min(1).required(),
   SOI_EMPRESA: yup.array().min(1).required(),
-  SOI_DOCUMENTOS: yup.array().of(yup.mixed()).notRequired().test(
+  SOI_DOCUMENTO: yup.array().of(yup.mixed()).notRequired().test(
     'at-least-one-adjunto',
     'Debe adjuntar un archivo o una captura de mapa',
     function (documentos) {

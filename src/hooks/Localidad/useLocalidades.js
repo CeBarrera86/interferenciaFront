@@ -23,7 +23,8 @@ export function useLocalidades() {
   useEffect(() => {
     const fetchLocalidades = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/localidades');
+        const response = await fetch(`${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}/api/localidades`);
+        // const response = await fetch(`${import.meta.env.VITE_URL_BASE_SSL}:${import.meta.env.VITE_PORT_SSL}/api/localidades`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();

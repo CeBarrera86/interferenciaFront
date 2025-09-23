@@ -8,25 +8,34 @@ import { useEnvioInterferencia } from './useEnvioInterferencia';
 import { ubicacionBase, formularioInicial } from '../../config/formConstants';
 
 export function useInterferenciaForm() {
-  const form = useForm({ resolver: yupResolver(interferenciasSchema), defaultValues: formularioInicial, });
+  const form = useForm({
+    resolver: yupResolver(interferenciasSchema),
+    defaultValues: formularioInicial,
+  });
+
   const { control, setValue, getValues, watch, ...restForm } = form;
   const { fields, append, remove } = useFieldArray({ control, name: 'SOI_UBICACIONES' });
   const [pinActivoIndex, setPinActivoIndex] = useState(0);
+
   const actualizarUbicacionDesdeMapa = (index, lat, lng) => {
     setValue(`SOI_UBICACIONES.${index}.USI_LATITUD`, lat);
     setValue(`SOI_UBICACIONES.${index}.USI_LONGITUD`, lng);
-    // Forzar reactividad: clonar el array completo
     const ubicacionesActualizadas = getValues('SOI_UBICACIONES').map((ubi) => ({ ...ubi }));
     setValue('SOI_UBICACIONES', ubicacionesActualizadas);
-
     setPinActivoIndex(index);
   };
 
-  const agregarUbicacion = () => { append({ ...ubicacionBase }); setPinActivoIndex(ubicaciones.length); };
-  const eliminarUbicacion = (index) => { remove(index); setPinActivoIndex(index > 0 ? index - 1 : 0); };
-  const archivos = useArchivos(form, (newUbicaciones) => {
-    newUbicaciones.forEach((ubi, i) => { setValue(`SOI_UBICACIONES.${i}`, ubi); });
-  });
+  const agregarUbicacion = () => {
+    append({ ...ubicacionBase });
+    setPinActivoIndex(getValues('SOI_UBICACIONES').length);
+  };
+
+  const eliminarUbicacion = (index) => {
+    remove(index);
+    setPinActivoIndex(index > 0 ? index - 1 : 0);
+  };
+
+  const archivos = useArchivos(form);
   const dialogos = useDialogos(form);
   const envio = useEnvioInterferencia(form, dialogos);
   const ubicaciones = watch('SOI_UBICACIONES');
