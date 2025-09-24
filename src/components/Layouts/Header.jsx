@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Box, styled, } from '@mui/material';
-import Logo from '../../assets/corpico_logo.svg';
+import Logo from '../../assets/Corpico_logo.svg';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => {
   return {
