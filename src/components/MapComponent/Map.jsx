@@ -60,12 +60,12 @@ export default function Map({
   const { handleCaptureMap } = useScreenshot(
     mapContainerRef,
     mapRef,
-    (img) => {onMapScreenshot(img);},
+    (img) => { onMapScreenshot(img); },
     false,
     [captureButtonRef, clearButtonRef, drawButtonRef, panButtonRef, deleteCaptureButtonRef]
   );
 
-  const { puedeCapturar, pinesInvalidos } = useValidarZona( ubicaciones, drawnShape );
+  const { puedeCapturar, pinesInvalidos } = useValidarZona(ubicaciones, drawnShape);
 
   const handleMapClick = useCallback((event) => {
     const lat = event.latLng.lat();
@@ -73,12 +73,19 @@ export default function Map({
 
     if (modoMapa === 'movimiento') {
       mapRef.current?.panTo({ lat, lng });
-      actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng); // Directly call the prop
-      moverPinActivo(lat, lng);
+
+      // ✅ Validar que el índice activo exista
+      if (pinActivoIndex < ubicaciones.length) {
+        actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng);
+        moverPinActivo(lat, lng);
+      } else {
+        console.warn(`❌ Pin activo fuera de rango: ${pinActivoIndex}`);
+      }
     } else if (modoMapa === 'dibujo') {
       handleMapClickForDrawing(event);
     }
-  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo]);
+  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo, ubicaciones]);
+
 
   const onPolygonEdit = useCallback(() => {
     if (polygonRef.current) {
@@ -124,7 +131,7 @@ export default function Map({
                 onMouseUp={onPolygonEdit}
               />
             )}
-            <MapShapes ubicaciones={ubicaciones} onShapeEdit={() => {}} />
+            <MapShapes ubicaciones={ubicaciones} onShapeEdit={() => { }} />
           </GoogleMap>
 
           {/* Botones */}

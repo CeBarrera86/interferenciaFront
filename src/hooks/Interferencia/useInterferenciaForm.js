@@ -18,22 +18,36 @@ export function useInterferenciaForm() {
   const [pinActivoIndex, setPinActivoIndex] = useState(0);
 
   const actualizarUbicacionDesdeMapa = (index, lat, lng) => {
+    const ubicaciones = getValues('SOI_UBICACIONES');
+
+    if (!ubicaciones[index]) {
+      console.warn(`❌ Índice ${index} fuera de rango. No se actualiza ubicación.`);
+      return;
+    }
+
     setValue(`SOI_UBICACIONES.${index}.USI_LATITUD`, lat);
     setValue(`SOI_UBICACIONES.${index}.USI_LONGITUD`, lng);
-    const ubicacionesActualizadas = getValues('SOI_UBICACIONES').map((ubi) => ({ ...ubi }));
-    setValue('SOI_UBICACIONES', ubicacionesActualizadas);
+
+    const actualizadas = ubicaciones.map((ubi) => ({ ...ubi }));
+    setValue('SOI_UBICACIONES', actualizadas);
     setPinActivoIndex(index);
   };
 
+
   const agregarUbicacion = () => {
     append({ ...ubicacionBase });
-    setPinActivoIndex(getValues('SOI_UBICACIONES').length);
+    setPinActivoIndex(getValues('SOI_UBICACIONES').length - 1);
   };
 
   const eliminarUbicacion = (index) => {
     remove(index);
-    setPinActivoIndex(index > 0 ? index - 1 : 0);
+
+    const nuevasUbicaciones = getValues('SOI_UBICACIONES');
+    const nuevoIndex = Math.min(index > 0 ? index - 1 : 0, nuevasUbicaciones.length - 1);
+
+    setPinActivoIndex(nuevoIndex);
   };
+
 
   const archivos = useArchivos(form);
   const dialogos = useDialogos(form);
