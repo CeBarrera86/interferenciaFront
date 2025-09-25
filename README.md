@@ -1,10 +1,17 @@
 # React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
 Proyecto FrontEnd para manejo de Interferencias en Corpico Ltda.
 
-EJECUTAR:
+EJECUTAR para producción:
 
+# 1. Copiar enviroment (Agregar valores correspondientes)
+cp .env.template .env 
+
+# 2. Instalás dependencias (si hay cambios)
 npm install
-npm run dev
+
+# 3. Compilás en modo producción
+npm run build:prod && npm run preview
+
+# 4. Reiniciás Apache
+sudo systemctl restart apache2

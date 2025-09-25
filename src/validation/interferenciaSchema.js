@@ -15,7 +15,7 @@ const ubicacionSchema = yup.object().shape({
   USI_LONGITUD: yup.number().nullable().required(),
 });
 
-export const interferenciasSchema = yup.object().shape({
+export const interferenciaSchema = yup.object().shape({
   DSI_CUIT: yup.string().required('Campo requerido'),
   DSI_NOMBRE: yup.string().required('Campo requerido'),
   DSI_APELLIDO: yup.string().required('Campo requerido'),

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { interferenciasSchema } from '../../validation/interferenciasSchema';
+import { interferenciaSchema } from '../../validation/interferenciaSchema';
 import { useArchivos } from './useArchivos';
 import { useDialogos } from './useDialogos';
 import { useEnvioInterferencia } from './useEnvioInterferencia';
@@ -9,7 +9,7 @@ import { ubicacionBase, formularioInicial } from '../../config/formConstants';
 
 export function useInterferenciaForm() {
   const form = useForm({
-    resolver: yupResolver(interferenciasSchema),
+    resolver: yupResolver(interferenciaSchema),
     defaultValues: formularioInicial,
   });
 

@@ -177,10 +177,10 @@ export default function FormArchivos({ errors, onFilesChange, onRemoveFile, onPr
           )}
         </Grid>
 
-        {errors?.SOI_DOCUMENTOS && (
+        {errors?.SOI_DOCUMENTO && (
           <Grid size={{ xs: 12 }}>
             <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-              {errors.SOI_DOCUMENTOS.message}
+              {errors.SOI_DOCUMENTO.message}
             </Typography>
           </Grid>
         )}

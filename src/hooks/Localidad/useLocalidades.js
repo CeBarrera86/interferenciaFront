@@ -1,10 +1,6 @@
 import { useEffect, useReducer } from 'react';
 
-const initialState = {
-  localidades: [],
-  loading: true,
-  error: null,
-};
+const initialState = { localidades: [], loading: true, error: null, };
 
 function reducer(state, action) {
   switch (action.type) {
@@ -21,17 +17,20 @@ export function useLocalidades() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
+    const modo = import.meta.env.VITE_MODO?.trim().toLowerCase();
+    const esDev = modo === 'dev';
+
+    const baseURL = esDev
+      ? `${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}`
+      : `${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}`;
+
     const fetchLocalidades = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}/api/localidades`);
-        // const response = await fetch(`${import.meta.env.VITE_URL_BASE_SSL}:${import.meta.env.VITE_PORT_SSL}/api/localidades`);
+        const response = await fetch(`${baseURL}/api/localidades`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        const formatted = data.map(loc => ({
-          id: loc.LOC_ID,
-          nombre: loc.LOC_DESCRIPCION,
-        }));
+        const formatted = data.map(loc => ({ id: loc.LOC_ID, nombre: loc.LOC_DESCRIPCION, }));
 
         dispatch({ type: 'SUCCESS', payload: formatted });
       } catch (error) {
@@ -43,9 +42,5 @@ export function useLocalidades() {
     fetchLocalidades();
   }, []);
 
-  return {
-    localidades: state.localidades,
-    loadingLocalidades: state.loading,
-    errorLocalidades: state.error,
-  };
+  return { localidades: state.localidades, loadingLocalidades: state.loading, errorLocalidades: state.error, };
 }
