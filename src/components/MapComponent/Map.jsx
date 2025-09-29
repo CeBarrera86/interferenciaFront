@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import { useValidarZona } from '../../hooks/Mapa/useValidarZona';
+import { useGeocoding } from '../../hooks/Mapa/useGeocoding';
 
 const allLibraries = [...libraries, 'geometry', 'marker'];
 
@@ -37,6 +38,7 @@ export default function Map({
   const panButtonRef = useRef(null);
   const deleteCaptureButtonRef = useRef(null);
   const polygonRef = useRef(null);
+  const { obtenerDireccionDesdeCoordenadas } = useGeocoding();
   const { drawnShape, setDrawnShape, handleMapClickForDrawing, clearAllShapes } = useDrawing();
   const { moverPinActivo } = useMarkers(
     mapRef,
@@ -67,16 +69,33 @@ export default function Map({
 
   const { puedeCapturar, pinesInvalidos } = useValidarZona(ubicaciones, drawnShape);
 
-  const handleMapClick = useCallback((event) => {
-    const lat = event.latLng.lat();
-    const lng = event.latLng.lng();
+  const handleMapClick = useCallback(async (event) => {
+    // Obtener coordenadas sin redondear
+    const rawLat = event.latLng.lat();
+    const rawLng = event.latLng.lng();
+
+    // Redondear las coordenadas para normalizar la precisión
+    const lat = parseFloat(rawLat.toFixed(10));
+    const lng = parseFloat(rawLng.toFixed(10));
 
     if (modoMapa === 'movimiento') {
       mapRef.current?.panTo({ lat, lng });
 
-      // ✅ Validar que el índice activo exista
       if (pinActivoIndex < ubicaciones.length) {
-        actualizarUbicacionDesdeMapa(pinActivoIndex, lat, lng);
+
+        // 1. Llamada a la geocodificación inversa para obtener todos los datos
+        const { calle, altura, localidadNombre, vereda } = await obtenerDireccionDesdeCoordenadas(lat, lng);
+
+        // 2. Pasar TODOS los datos al hook del formulario
+        actualizarUbicacionDesdeMapa(
+          pinActivoIndex,
+          lat,
+          lng,
+          calle,
+          altura,
+          localidadNombre,
+          vereda
+        );
         moverPinActivo(lat, lng);
       } else {
         console.warn(`❌ Pin activo fuera de rango: ${pinActivoIndex}`);
@@ -84,8 +103,15 @@ export default function Map({
     } else if (modoMapa === 'dibujo') {
       handleMapClickForDrawing(event);
     }
-  }, [modoMapa, actualizarUbicacionDesdeMapa, handleMapClickForDrawing, pinActivoIndex, moverPinActivo, ubicaciones]);
-
+  }, [
+    modoMapa,
+    actualizarUbicacionDesdeMapa,
+    handleMapClickForDrawing,
+    pinActivoIndex,
+    moverPinActivo,
+    ubicaciones,
+    obtenerDireccionDesdeCoordenadas
+  ]);
 
   const onPolygonEdit = useCallback(() => {
     if (polygonRef.current) {

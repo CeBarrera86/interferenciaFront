@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { FormProvider } from 'react-hook-form';
-
 import FormEmpresas from './FormInterferencia/FormEmpresas';
 import FormSolicitante from './FormInterferencia/FormSolicitante';
 import FormObra from './FormInterferencia/FormObra';
@@ -10,10 +9,8 @@ import FormBotones from './FormInterferencia/FormBotones';
 import FormUbicacion from './FormInterferencia/FormUbicacion';
 import Map from './MapComponent/Map';
 import MapConsideration from './MapComponent/MapConsideration';
-
 import { useInterferenciaForm } from '../hooks/Interferencia/useInterferenciaForm';
 import { useLocalidades } from '../hooks/Localidad/useLocalidades';
-
 import MapPreviewDialog from './Dialogos/MapPreviewDialog';
 import SuccessDialog from './Dialogos/SuccessDialog';
 import ErrorDialog from './Dialogos/ErrorDialog';
@@ -22,8 +19,7 @@ import PreviewDialog from './Dialogos/PreviewDialog';
 export default function InterferenciasForm() {
   const { localidades } = useLocalidades();
   const [imagenPreview, setImagenPreview] = useState(null);
-
-  const form = useInterferenciaForm();
+  const form = useInterferenciaForm(localidades);
   const {
     control,
     handleSubmit,
@@ -49,6 +45,7 @@ export default function InterferenciasForm() {
     eliminarUbicacion,
     actualizarUbicacionDesdeMapa,
     pinActivoIndex,
+    manejarCambioDireccion,
     manejarCambioArchivoUbicacion,
     getValues,
     setValue,
@@ -109,6 +106,8 @@ export default function InterferenciasForm() {
                   ubicaciones={ubicaciones}
                   onAddUbicacion={agregarUbicacion}
                   onRemoveUbicacion={eliminarUbicacion}
+                  // 🔴 CAMBIO 2: Se pasa la función al componente FormUbicacion
+                  onAddressChange={manejarCambioDireccion}
                 />
               </Paper>
             </Box>
