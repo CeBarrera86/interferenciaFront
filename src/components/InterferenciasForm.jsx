@@ -9,6 +9,7 @@ import FormArchivos from './FormInterferencia/FormArchivos';
 import FormBotones from './FormInterferencia/FormBotones';
 import FormUbicacion from './FormInterferencia/FormUbicacion';
 import Map from './MapComponent/Map';
+import MapConsideration from './MapComponent/MapConsideration';
 
 import { useInterferenciaForm } from '../hooks/Interferencia/useInterferenciaForm';
 import { useLocalidades } from '../hooks/Localidad/useLocalidades';
@@ -100,6 +101,7 @@ export default function InterferenciasForm() {
                     />
                   </Box>
                 )}
+                <MapConsideration />
                 <FormUbicacion
                   control={control}
                   errors={errors}
