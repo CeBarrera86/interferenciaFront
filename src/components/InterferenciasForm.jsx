@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { FormProvider } from 'react-hook-form';
 import FormEmpresas from './FormInterferencia/FormEmpresas';
@@ -19,6 +19,8 @@ import PreviewDialog from './Dialogos/PreviewDialog';
 export default function InterferenciasForm() {
   const { localidades } = useLocalidades();
   const [imagenPreview, setImagenPreview] = useState(null);
+  const [formasDibujadas, setFormasDibujadas] = useState([]); 
+  
   const form = useInterferenciaForm(localidades);
   const {
     control,
@@ -38,7 +40,6 @@ export default function InterferenciasForm() {
     resetearFormularioYMapa,
     abrirVistaPreviaMapa,
     cerrarVistaPreviaMapa,
-    puedeCapturarMapa,
     tipoAdjuntoActivo,
     ubicaciones,
     agregarUbicacion,
@@ -49,7 +50,12 @@ export default function InterferenciasForm() {
     manejarCambioArchivoUbicacion,
     getValues,
     setValue,
+    limpiarAdjunto, 
   } = form;
+
+  const handleResetForm = useCallback(() => {
+    resetearFormularioYMapa(limpiarAdjunto, setFormasDibujadas);
+  }, [resetearFormularioYMapa, limpiarAdjunto]);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -106,7 +112,6 @@ export default function InterferenciasForm() {
                   ubicaciones={ubicaciones}
                   onAddUbicacion={agregarUbicacion}
                   onRemoveUbicacion={eliminarUbicacion}
-                  // 🔴 CAMBIO 2: Se pasa la función al componente FormUbicacion
                   onAddressChange={manejarCambioDireccion}
                 />
               </Paper>
@@ -119,7 +124,7 @@ export default function InterferenciasForm() {
 
       {/* Diálogos */}
       <MapPreviewDialog open={abrirVistaPreviaMapa} onClose={cerrarVistaPreviaMapa} mapScreenshotData={datosCapturaMapa} />
-      <SuccessDialog open={abrirDialogoExito} onClose={resetearFormularioYMapa} message={mensajeExito} id={idInterferencia} />
+      <SuccessDialog open={abrirDialogoExito} onClose={handleResetForm} message={mensajeExito} id={idInterferencia} />
       <ErrorDialog open={abrirDialogoError} onClose={cerrarDialogoError} message={mensajeError} details={detallesError} />
       <PreviewDialog open={!!imagenPreview} onClose={() => setImagenPreview(null)} imagen={imagenPreview} />
     </Box>

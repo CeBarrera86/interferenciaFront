@@ -83,7 +83,6 @@ export function useInterferenciaForm(localidades) {
 
     if (ubicacion.USI_CALLE && ubicacion.USI_ALTURA && localidadSeleccionada) {
 
-      console.log(`Buscando coordenadas para: ${direccionCompleta}`);
       const coords = await obtenerCoordenadasDesdeDireccion(direccionCompleta);
 
       if (coords) {
