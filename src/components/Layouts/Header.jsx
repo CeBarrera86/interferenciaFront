@@ -1,4 +1,3 @@
-import React from 'react';
 import { AppBar, Toolbar, Typography, Box, styled, } from '@mui/material';
 import Logo from '../../assets/Corpico_logo.svg';
 

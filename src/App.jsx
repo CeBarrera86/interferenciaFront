@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -17,7 +17,9 @@ import InterferenciasForm from './components/InterferenciasForm';
 function App() {
   const theme = useMemo(() => corpicoTheme('light'), []); // Cambiar a 'dark' si querés probar
 
-  console.log('Modo Vite:', import.meta.env.MODE);
+  if (import.meta.env.MODE !== 'production') {
+    console.log('Modo Vite:', import.meta.env.MODE);
+  }
 
   return (
     <ThemeProvider theme={theme}>

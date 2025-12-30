@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback, useRef } from 'react';
 
 export function useDialogos(form) {
   const { reset } = form;
@@ -6,6 +6,7 @@ export function useDialogos(form) {
   const initialState = {
     abrirDialogoExito: false,
     abrirDialogoError: false,
+    abrirDialogoEspera: false,
     mensajeExito: '',
     mensajeError: '',
     detallesError: '',
@@ -14,6 +15,10 @@ export function useDialogos(form) {
 
   function reducer(state, action) {
     switch (action.type) {
+      case 'ESPERA_ON':
+        return { ...state, abrirDialogoEspera: true };
+      case 'ESPERA_OFF':
+        return { ...state, abrirDialogoEspera: false };
       case 'EXITO':
         return {
           ...state,
@@ -39,6 +44,39 @@ export function useDialogos(form) {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const esperarInicioRef = useRef(null);
+  const MIN_DISPLAY_MS = 600;
+
+  // Abre el diálogo de espera y registra el momento de inicio
+  const abrirEspera = () => {
+    // record start timestamp
+    try { esperarInicioRef.current = Date.now(); } catch (e) { esperarInicioRef.current = Date.now(); }
+
+    // Blur focused element to avoid aria-hidden conflicts when a dialog is shown
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    dispatch({ type: 'ESPERA_ON' });
+  };
+
+  // Cierra el diálogo de espera garantizando un tiempo mínimo visible
+  const cerrarEspera = (cb) => {
+    const started = esperarInicioRef.current || 0;
+    const elapsed = Date.now() - started;
+    const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
+
+    if (remaining === 0) {
+      dispatch({ type: 'ESPERA_OFF' });
+      if (cb) cb();
+    } else {
+      setTimeout(() => {
+        dispatch({ type: 'ESPERA_OFF' });
+        if (cb) cb();
+      }, remaining);
+    }
+  };
+
   const cerrarDialogoError = () => dispatch({ type: 'CERRAR_ERROR' });
 
   const resetearFormularioYMapa = useCallback((limpiarAdjunto, setFormasDibujadas) => {
@@ -51,6 +89,8 @@ export function useDialogos(form) {
   return {
     ...state,
     dispatch,
+    abrirEspera,
+    cerrarEspera,
     cerrarDialogoError,
     resetearFormularioYMapa,
   };

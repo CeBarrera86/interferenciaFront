@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { Box, styled, Typography, Container } from '@mui/material';
 
 const StyledFooter = styled(Box)(({ theme }) => {

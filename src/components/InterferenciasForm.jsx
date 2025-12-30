@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { FormProvider } from 'react-hook-form';
 import FormEmpresas from './FormInterferencia/FormEmpresas';
@@ -15,6 +15,7 @@ import MapPreviewDialog from './Dialogos/MapPreviewDialog';
 import SuccessDialog from './Dialogos/SuccessDialog';
 import ErrorDialog from './Dialogos/ErrorDialog';
 import PreviewDialog from './Dialogos/PreviewDialog';
+import WaitDialog from './Dialogos/WaitDialog';
 
 export default function InterferenciasForm() {
   const { localidades } = useLocalidades();
@@ -41,6 +42,7 @@ export default function InterferenciasForm() {
     abrirVistaPreviaMapa,
     cerrarVistaPreviaMapa,
     tipoAdjuntoActivo,
+    abrirDialogoEspera,
     ubicaciones,
     agregarUbicacion,
     eliminarUbicacion,
@@ -124,6 +126,7 @@ export default function InterferenciasForm() {
 
       {/* Diálogos */}
       <MapPreviewDialog open={abrirVistaPreviaMapa} onClose={cerrarVistaPreviaMapa} mapScreenshotData={datosCapturaMapa} />
+      <WaitDialog open={abrirDialogoEspera} />
       <SuccessDialog open={abrirDialogoExito} onClose={handleResetForm} message={mensajeExito} id={idInterferencia} />
       <ErrorDialog open={abrirDialogoError} onClose={cerrarDialogoError} message={mensajeError} details={detallesError} />
       <PreviewDialog open={!!imagenPreview} onClose={() => setImagenPreview(null)} imagen={imagenPreview} />

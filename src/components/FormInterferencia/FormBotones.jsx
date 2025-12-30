@@ -1,13 +1,8 @@
-import React from 'react';
 import { Box, Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 
 export default function FormBotones() {
-  const navigate = useNavigate();
-
   const handleVolverClick = () => {
     window.location.href = 'https://corpico.com.ar/';
-    // O si querés navegar internamente: navigate('/');
   };
 
   const buttonContainerStyles = {

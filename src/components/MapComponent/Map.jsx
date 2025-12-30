@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useMemo } from 'react';
+import { useRef, useCallback, useState, useMemo } from 'react';
 import { Box, Grid, Tooltip } from '@mui/material';
 import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
 import MapButton from './MapButton';

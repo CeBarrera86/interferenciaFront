@@ -7,6 +7,13 @@ export function useEnvioInterferencia(form, dialogos) {
   };
 
   const enviarFormulario = async (data) => {
+    // Mostrar diálogo de espera (usa la API de dialogos si está disponible)
+    if (dialogos && typeof dialogos.abrirEspera === 'function') {
+      dialogos.abrirEspera();
+    } else {
+      dispatch({ type: 'ESPERA_ON' });
+    }
+
     const formData = new FormData();
 
     for (const key in data) {
@@ -29,42 +36,79 @@ export function useEnvioInterferencia(form, dialogos) {
       }
     }
 
-    const modo = import.meta.env.VITE_MODO?.trim().toLowerCase();
-    const esDev = modo === 'dev';
-
-    const baseURL = esDev
-      ? `${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}`
-      : `${import.meta.env.VITE_URL_BASE}:${import.meta.env.VITE_PORT}`;
+    // Construir baseURL a partir de variables de entorno. Dejar tal cual si no están definidas.
+    const baseURL = `${import.meta.env.VITE_URL_BASE || ''}:${import.meta.env.VITE_PORT || ''}`;
 
     try {
-      const response = await fetch(`${baseURL}/api/interferencia/store`, {
-        method: 'POST',
-        body: formData,
-      });
+      const { ok, status, body } = await sendInterferencia(formData, { baseURL, timeout: 15000 });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        dispatch({
-          type: 'ERROR',
-          payload: {
-            message: result.message || 'Error desconocido.',
-            details: result.error || result.errors?.map(e => e.msg).join(', ') || '',
-          },
+      // Cerrar diálogo de espera respetando tiempo mínimo, luego abrir diálogo correspondiente
+      if (dialogos && typeof dialogos.cerrarEspera === 'function') {
+        dialogos.cerrarEspera(() => {
+          if (!ok) {
+            dispatch({
+              type: 'ERROR',
+              payload: {
+                message: body?.message || 'Error desconocido.',
+                details: body?.error || body?.errors?.map(e => e.msg).join(', ') || '',
+              },
+            });
+          } else {
+            dispatch({
+              type: 'EXITO',
+              payload: { message: body?.message, id: body?.id, },
+            });
+          }
         });
-        return false;
+      } else {
+        // Fallback inmediato
+        dispatch({ type: 'ESPERA_OFF' });
+        if (!ok) {
+          dispatch({
+            type: 'ERROR',
+            payload: {
+              message: body?.message || 'Error desconocido.',
+              details: body?.error || body?.errors?.map(e => e.msg).join(', ') || '',
+            },
+          });
+          return false;
+        }
+
+        dispatch({
+          type: 'EXITO',
+          payload: { message: body?.message, id: body?.id, },
+        });
       }
 
-      dispatch({
-        type: 'EXITO',
-        payload: { message: result.message, id: result.id, },
-      });
       return true;
     } catch (error) {
-      dispatch({
-        type: 'ERROR',
-        payload: { message: 'Error de conexión.', details: error.message, },
-      });
+      if (error.name === 'TimeoutError') {
+        const msg = 'La solicitud tardó demasiado tiempo. Intenta nuevamente.';
+        if (dialogos && typeof dialogos.cerrarEspera === 'function') {
+          dialogos.cerrarEspera(() => {
+            dispatch({ type: 'ERROR', payload: { message: msg, details: '' } });
+          });
+        } else {
+          dispatch({ type: 'ESPERA_OFF' });
+          dispatch({ type: 'ERROR', payload: { message: msg, details: '' } });
+        }
+        return false;
+      }
+      if (dialogos && typeof dialogos.cerrarEspera === 'function') {
+        dialogos.cerrarEspera(() => {
+          dispatch({
+            type: 'ERROR',
+            payload: { message: 'Error de conexión.', details: error.message, },
+          });
+        });
+      } else {
+        dispatch({ type: 'ESPERA_OFF' });
+        dispatch({
+          type: 'ERROR',
+          payload: { message: 'Error de conexión.', details: error.message, },
+        });
+      }
+
       return false;
     }
   };
