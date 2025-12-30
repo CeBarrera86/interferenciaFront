@@ -1,3 +1,5 @@
+import { sendInterferencia } from '../../api/interferencia';
+
 export function useEnvioInterferencia(form, dialogos) {
   const { dispatch } = dialogos;
 
